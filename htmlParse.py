@@ -24,10 +24,6 @@ print type(curvy)
 for r in curvy:
     print "==========="
     currAttributes = r.attrs['style']
-    print re.search("background: #ffffdd;", currAttributes) != None
+    if re.search("background: #ffffdd;", currAttributes):
+        print r.get_text()
 
-#print re.findall("#ffffdd;", r)
-#children = curvy.findChildren()
-#for child in children:
-#    print "================="
-#    print child
