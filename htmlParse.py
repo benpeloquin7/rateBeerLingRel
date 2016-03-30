@@ -1,29 +1,50 @@
-## for processing html (looking at Beautiful Soup documentation)
 from bs4 import BeautifulSoup
 import urllib
 import re
 
+## example urls
 html1 = "http://www.ratebeer.com/beer/de-molen--hair-of-the-dog-fred/369740/1786/"
 html2 = "http://www.ratebeer.com/beer/ridge-ay-caramba-jalapeno-ipa/405866/1786/"
 html3 = "http://www.ratebeer.com/beer/skookum-murder-of-crows/176960/1786/"
-r = urllib.urlopen(html3).read()
+
+
+## set-up
+r = urllib.urlopen(html1).read()
 soup = BeautifulSoup(r, "html.parser")
-#letters = soup.find_all("div", class_ = "curvy")
-#print letters[0]
-#print soup.prettify()
-#letters2 = soup.find("div", class_ = "curvy")
-
-#print letters[0].get_text()
-
 
 ## children of curvy div
 curvy = soup.find_all("div", class_ = "curvy")
-#curvy = soup.find(string=re.compile("background: #ffffdd;"))
-print type(curvy)
 
+####
+#### 1) extract name of review
+####
+h1Text = soup.find("h1").get_text()
+
+
+####
+#### 2) extract individual scores
+####
+userPattern = "background: #ffffdd;" # identify our user
+scores = ''
 for r in curvy:
-    print "==========="
-    currAttributes = r.attrs['style']
-    if re.search("background: #ffffdd;", currAttributes):
-        print r.get_text()
+    if "style" in r.attrs and\
+            re.search(userPattern, r.attrs["style"]):
+        scores = r.get_text()
 
+####
+#### 3) extract review text
+####
+paddingPattern = "padding: 20px 10px 0px 0px; line-height: 1.5;" # from manual inspection
+allDivs = soup.find_all("div")
+reviewText = ""
+for div in allDivs:
+    currAttr = div.attrs
+    if "style" in currAttr.keys() and\
+            re.search(paddingPattern, currAttr['style']) != None:
+        reviewText = div.get_text()
+
+
+## current data
+print h1Text
+print scores
+print reviewText
