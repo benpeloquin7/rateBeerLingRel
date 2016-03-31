@@ -1,3 +1,7 @@
+#########
+######### Given a beer review page with a target user
+######### extract (title, scores, review_text)
+#########
 from bs4 import BeautifulSoup
 import urllib
 import re
