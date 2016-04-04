@@ -57,6 +57,11 @@ def getBeerInfo(soup):
     """
     return [getTitle(soup), getScores(soup), getReviewText(soup)]
 
+def urlToSoup(url):
+    r = urllib.urlopen(url).read()
+    soup = BeautifulSoup(r, "html.parser")
+    return soup
+
 def main():
     ## example URLs for rater id 1786
     html1 = "http://www.ratebeer.com/beer/de-molen--hair-of-the-dog-fred/369740/1786/"
