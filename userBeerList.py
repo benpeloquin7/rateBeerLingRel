@@ -16,7 +16,7 @@ def constructBeerListURL(userID):
     Given user ID get list of 50 beers
     return :: url string
     """
-    return  "http://www.ratebeer.com/user/" + userID + "/beer-ratings/"
+    return  "http://www.ratebeer.com/user/" + str(userID) + "/beer-ratings/"
 
 def constructTargetBeerURL(partialURL):
     """
@@ -39,6 +39,7 @@ def getUserBeerURLs(beerListURL, userID):
     target urls on this page
     return :: list of beer url strings
     """
+    userID = str(userID)
     browser = webdriver.Firefox()
     browser.get(beerListURL)
     soup = BeautifulSoup(browser.page_source, "html.parser")
