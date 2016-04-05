@@ -23,8 +23,6 @@ dataHold = []
 for url in urls:
     soup = beerData.urlToSoup(url)
     data = beerData.getBeerInfo(soup)
-    #print "--------"
-    #print data
     dataDict = {"user":user,\
                     "beerName":removeNonAscii(data[0]),\
                     "ratings":removeNonAscii(data[1]),\
