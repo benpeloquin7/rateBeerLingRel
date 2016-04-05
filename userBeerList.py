@@ -40,6 +40,7 @@ def getUserBeerURLs(beerListURL, userID):
     return :: list of beer url strings
     """
     userID = str(userID)
+   
     ## need selenium here because js script
     ## populates user beer list
     browser = webdriver.Firefox()
