@@ -40,12 +40,16 @@ def getUserBeerURLs(beerListURL, userID):
     return :: list of beer url strings
     """
     userID = str(userID)
+    ## need selenium here because js script
+    ## populates user beer list
     browser = webdriver.Firefox()
     browser.get(beerListURL)
     soup = BeautifulSoup(browser.page_source, "html.parser")
     allURLs = soup.find_all("a", href = True)
     pattern = "(beer/.+" + userID + "/)"
     targetURLs = getTargetURLs(allURLs,  pattern)
+    browser.close()
+
     return targetURLs
     
 def getTargetURLs(urls, pattern):
