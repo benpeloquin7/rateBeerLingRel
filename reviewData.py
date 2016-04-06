@@ -46,8 +46,14 @@ class ReviewData():
 	def getPalateScore(self):
 		return self.palateScore
 
-	
 	######
 	###### Processing functionality
 	######  
 	
+	def prettyPrint(self):
+		print "------------------"
+		print "=================="
+		print "userID:\t", self.userID
+		print "beerName:\t", self.beerName
+		print "ratingsBlob:\t", self.ratingsBlob
+		print "reviewBlob:\t", self.reviewBlob
