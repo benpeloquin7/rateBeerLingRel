@@ -92,12 +92,12 @@ def getUserBeerURLs(beerListURL, userID):
     fullURLs = convertURLs(partialURLs, constructTargetBeerURL)
     return fullURLs
 
-def getUserIds(url):
+def getUserIds(url, seleniumOn = False):
 	"""
 	Given a URL (such as a top user list...)
 	return :: All user ids on this page
 	"""
-	soup = urlToSoup(url)
+	soup = urlToSoup(url, selenium = seleniumOn)
 	allURLs = soupParser.getAllLinks(soup)
 	pattern = "/user/([0-9]{3,6})/"
 	userIDs = parse_bs4URLs(allURLs, key = 'href', pattern = pattern, groupNum = 1)
