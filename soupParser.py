@@ -8,6 +8,14 @@ import re
 import sys
 
 
+
+## -------------------------------
+## Cleaning / helpers
+## ===============================
+def removeNonAscii(s):
+    return ''.join([i if ord(i) < 128 else ''\
+                        for i in s])
+
 ## -------------------------------
 ## Primary data extraction
 ## ===============================
