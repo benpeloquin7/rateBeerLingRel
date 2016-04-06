@@ -87,16 +87,7 @@ class ReviewData():
 	def getPalateScore(self):
 		return self.palateScore
 
-	######
-	###### Processing functionality
-	######  
-	
-	def parseReview(self):
-		"""
-		Extract linguistic content from review
-		"""
-		pass
-
+	## Set above fields
 	def setData(self):
 		"""
 		Set internal data
@@ -109,6 +100,15 @@ class ReviewData():
 		self.setAppearanceScore()
 		self.setTasteScore()
 		self.setPalateScore()
+	
+	######
+	###### Processing functionality
+	######  
+	def parseReview(self):
+		"""
+		Extract linguistic content from review
+		"""
+		pass
 
 	def prettyPrint(self):
 		"""
@@ -138,7 +138,7 @@ class ReviewData():
 		dict = {
 			userID : self.userID,
 			userName : self.userName,
-			userNumRated : self.userNumRated
+			userNumRated : self.userNumRated,
 			beerName : self.beerName,
 			overallScore : self.overallScore,
 			avgScore : self.avgScore,
@@ -146,7 +146,7 @@ class ReviewData():
 			appearanceScore : self.appearanceScore,
 			tasteScore : self.tasteScore,
 			palateScore : self.palateScore,
-			reviewBlob : self.reviewBlob
+			reviewBlob : self.reviewBlob,
 			ratingsBlob : self.ratingsBlob
 		}
 		return dict
