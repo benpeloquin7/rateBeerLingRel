@@ -1,38 +1,56 @@
 #########
 ######### Gather data
 #########
-
-
-import beerData
-import userBeerList
+import scraper
+import soupParser
+import RateBeerHelpers as RBhelpers
+import reviewData
 import csv
 
 
-def removeNonAscii(s):
-    return ''.join([i if ord(i) < 128 else ''\
-                        for i in s])
-
-user = 1786
-
-beerList = userBeerList.constructBeerListURL(user)
-urls = [userBeerList.constructTargetBeerURL(url)\
-    for url in userBeerList.getUserBeerURLs(beerList, user)]
+users = scraper.getUserIds(RBhelpers.TOP_RATERS_URL)
 
 dataHold = []
 
-for url in urls:
-    soup = beerData.urlToSoup(url)
-    data = beerData.getBeerInfo(soup)
-    dataDict = {"user":user,\
-                    "beerName":removeNonAscii(data[0]),\
-                    "ratings":removeNonAscii(data[1]),\
-                    "review":removeNonAscii(data[2])}
-    dataHold.append(dataDict)
+for user in users[0:2]:
+    beerListURL = scraper.constructBeerListURL(user)
+    beerURLs = scraper.getUserBeerURLs(beerListURL, user)
+    for url in beerURLs:
+        soup = scraper.urlToSoup(url)
+        data =  soupParser.getBeerInfo(soup)
+        id = user
+        beerName = soupParser.removeNonAscii(data[0])
+        ratingsBlob = soupParser.removeNonAscii(data[1])
+        reviewBlob = soupParser.removeNonAscii(data[2])
+        data =\
+            reviewData.ReviewData(userID = id,
+            beerName = beerName,
+            ratings = ratingsBlob,
+            review = reviewBlob)
+        # dataDict = {"user":user,\
+        #         "beerName":removeNonAscii(data[0]),\
+        #         "ratings":removeNonAscii(data[1]),\
+        #         "review":removeNonAscii(data[2])}
+        dataHold.append(data)
+        
+for i in range(len(dataHold)):
+    print dataHold[i].prettyPrint()
 
-    
-keys = dataHold[0].keys()
-with open('rateBeerData.csv', 'wb') as output_file:
-    dict_writer = csv.DictWriter(output_file, keys)
-    dict_writer.writeheader()
-    dict_writer.writerows(dataHold)
+# for i in range(len(dataHold)):
+#     print type(i)
+## practice with a single user
+# user = str(1786)
+# beerListURL = scraper.constructBeerListURL(user)
+# beerURLs = scraper.getUserBeerURLs(beerListURL, user)
 
+# dataHold = []
+# for url in beerURLs:
+#     soup = scraper.urlToSoup(url)
+#     data = soupParser.getBeerInfo(soup)
+#     dataDict = {"user":user,\
+#                 "beerName":removeNonAscii(data[0]),\
+#                 "ratings":removeNonAscii(data[1]),\
+#                 "review":removeNonAscii(data[2])}
+#     dataHold.append(dataDict)
+# for i in [1, 2, 3]:
+#     print dataHold[i]
