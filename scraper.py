@@ -4,14 +4,21 @@
 #########
 from bs4 import BeautifulSoup
 from selenium import webdriver
+import soupParser
 import urllib
 import re
 import sys
 import pdb
 
+
+## -------------------------------
+## Helpers
+## ===============================
 def urlToSoup(url, selenium = False):
 	"""
 	Given a url return soup object
+	set `selenium` to True if we need web driver
+	to load dynamic content...
 	"""
 	if selenium:
 		browser = webdriver.Firefox()
@@ -45,6 +52,31 @@ def constructTargetBeerURL(partialURL):
     """
     return "http://www.ratebeer.com/" + partialURL
 
+def gettNBeerLists(userID, n = 10):
+	"""
+	Given a user id and n beer list pages
+	return :: list of beer list url strings for userID
+	"""
+	baseURL = constructBeerListURL(userID)
+	URLs = [baseURL + str(i) + "/5/" for i in range(n)]
+	return URLs
+
+def parse_bs4URLs(urls, key = 'href', pattern = ".", groupNum = 0):
+    """
+    Given list of BeautifulSoup urls and `key` attribute
+    return : list of target url strings (possibly partial URL patterns)
+    """
+    goodURLs = []
+    for url in urls:
+        match = re.search(pattern, url[key])
+        if match:
+            goodURLs.append(match.group(groupNum))
+    return goodURLs
+
+## -------------------------------
+## Main functionality
+## ===============================
+
 def getUserBeerURLs(beerListURL, userID):
     """
     Given user beer list url and id return
@@ -60,17 +92,15 @@ def getUserBeerURLs(beerListURL, userID):
     fullURLs = convertURLs(partialURLs, constructTargetBeerURL)
     return fullURLs
 
-def parse_bs4URLs(urls, key = 'href', pattern = "."):
-    """
-    Given list of BeautifulSoup urls and `key` attribute
-    return : list of target url strings (possibly partial URL patterns)
-    """
-    goodURLs = []
-    for url in urls:
-        match = re.search(pattern, url[key])
-        if match:
-            goodURLs.append(match.group(0))
-    return goodURLs
-
+def getUserIds(url):
+	"""
+	Given a URL (such as a top user list...)
+	return :: All user ids on this page
+	"""
+	soup = urlToSoup(url)
+	allURLs = soupParser.getAllLinks(soup)
+	pattern = "/user/([0-9]{3,6})/"
+	userIDs = parse_bs4URLs(allURLs, key = 'href', pattern = pattern, groupNum = 1)
+	return userIDs
 
 
