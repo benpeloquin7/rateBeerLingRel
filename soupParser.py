@@ -7,6 +7,10 @@ import urllib
 import re
 import sys
 
+
+## -------------------------------
+## Primary data extraction
+## ===============================
 def getTitle(soup):
     """
     Extract beer title
@@ -56,3 +60,7 @@ def getBeerInfo(soup):
     return :: title, scores, and review text
     """
     return [getTitle(soup), getScores(soup), getReviewText(soup)]
+
+def getAllLinks(soup):
+	allURLs = soup.find_all("a", href = True)
+	return allURLs
