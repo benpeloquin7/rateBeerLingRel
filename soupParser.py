@@ -49,6 +49,7 @@ def targetDiv(div, pattern, attr):
         attr in currAttr.keys() and\
         re.search(pattern, currAttr[attr]) != None
 
+
 def getReviewText(soup):
     """
     Extract review text
@@ -72,3 +73,75 @@ def getBeerInfo(soup):
 def getAllLinks(soup):
 	allURLs = soup.find_all("a", href = True)
 	return allURLs
+
+
+## -------------------------------
+## Beer page global information
+## ===============================
+
+def getBeerGlobalScore(soup):
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: beers global score
+    """
+    scorePattern1 = "font-size: 48px; font-weight: bold; color: #fff; padding: 7px 10px;"
+    currDiv = soup.find_all('div', style = scorePattern1)
+    divAttrs = currDiv[0].attrs
+    scorePattern2 = "^([1-9]+\.[0-9]*): This figure represents"
+    if "title" in divAttrs.keys():
+        currSearch = re.search(scorePattern2, divAttrs["title"])
+    return currSearch.group(1) if currSearch != None else None
+
+def getBeerGlobalStyleScore(soup):
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: beers global score
+    """
+    scorePattern1 = "background-color: #66A212; position: relative; left: 0px; top: -20px; " +\
+                    "width: 67px; height: 67px; border-radius: 67px; z-index: -1;text-align: center;"
+    currDiv = soup.find_all('div', style = scorePattern1)
+    divAttrs = currDiv[0].attrs
+    scorePattern2 = "^([1-9]+\.[0-9]*): This figure represents"
+    if "title" in divAttrs.keys():
+        currSearch = re.search(scorePattern2, divAttrs["title"])
+    return currSearch.group(1) if currSearch != None else None
+
+def getBeerBrewer(soup):
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: beer's brewer (brand)
+    """
+    target = soup.find_all('a', id = '_brand4')[0]
+    return target.get_text()
+
+def getBeerStyle(soup):
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: beer's style
+    """
+    target = soup.find_all('a', href = re.compile("/beerstyles/.+"))[0]
+    return target.get_text()
+    
+def getBeerCountry(soup):
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: beer's country
+    """
+    target = soup.find_all('div', style = "padding-bottom: 7px; line-height: 1.5;")[0]
+    pattern = ".+,\s([A-Z]\w+)\s"
+    for t in target:
+        currSearch = re.search(pattern, t.get_text())
+        if currSearch != None:
+            return currSearch.group(1)
+    return None
+
+def getBeerNumRatings(soup):
+    pass
+def getBeerWeightedAvg(soup):
+    pass
+def getBeerCalories(soup):
+    pass
+def getBeerABV(soup):
+    pass
+def getBeerGlobalInfo(soup):
+    pass

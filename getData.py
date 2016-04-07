@@ -6,25 +6,42 @@ import soupParser
 import RateBeerHelpers as RBhelpers
 import reviewData
 import csv
+import numpy as np
 
 
-user = "1786"
-url = "http://www.ratebeer.com/beer/parallel-49--cannery-gimme-shelter/409009/1786/"
-soup = scraper.urlToSoup(url)
-data =  soupParser.getBeerInfo(soup)
-id = user
-beerName = soupParser.removeNonAscii(data[0])
-ratingsBlob = soupParser.removeNonAscii(data[1])
-reviewBlob = soupParser.removeNonAscii(data[2])
-data =\
-    reviewData.ReviewData(userID = id,
-    beerName = beerName,
-    ratings = ratingsBlob,
-    review = reviewBlob)
+np.random.seed(1786)
+np.random.randint(1000)
 
-data.prettyPrint()
-data.setData()
-data.prettyPrint()
+
+## Get beer global information
+url = "http://www.ratebeer.com/beer/beerbliotek-imperial-mocha-latte-stout/296801/5011/"
+url2 = "http://www.ratebeer.com/beer/mikkeller-ramen-to-biiru/381088/345852/"
+
+soup = scraper.urlToSoup(url2)
+print soupParser.getBeerGlobalScore(soup)
+print soupParser.getBeerGlobalStyleScore(soup)
+print soupParser.getBeerBrewer(soup)
+print soupParser.getBeerStyle(soup)
+print soupParser.getBeerCountry(soup)
+
+
+# user = "1786"
+# url = "http://www.ratebeer.com/beer/parallel-49--cannery-gimme-shelter/409009/1786/"
+# soup = scraper.urlToSoup(url)
+# data =  soupParser.getBeerInfo(soup)
+# id = user
+# beerName = soupParser.removeNonAscii(data[0])
+# ratingsBlob = soupParser.removeNonAscii(data[1])
+# reviewBlob = soupParser.removeNonAscii(data[2])
+# data =\
+#     reviewData.ReviewData(userID = id,
+#     beerName = beerName,
+#     ratings = ratingsBlob,
+#     review = reviewBlob)
+
+# data.prettyPrint()
+# data.setData()
+# data.prettyPrint()
 
 # users = scraper.getUserIds(RBhelpers.TOP_RATERS_URL)
 
