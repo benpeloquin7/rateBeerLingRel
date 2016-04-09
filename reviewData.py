@@ -7,7 +7,7 @@ class ReviewData():
 		self.userID = userID
 		self.userName = None
 		self.userNumRated = None
-		## Beer info
+		## Current review info
 		self.beerName = beerName
 		self.ratingsBlob = ratings
 		self.reviewBlob = review
@@ -23,7 +23,16 @@ class ReviewData():
 		self.tasteScoreTotal = 10
 		self.palateScore = None
 		self.palateScoreTotal = 5
-	
+		## Beer global info
+		self.brewerName = None
+		self.beerGlobalScore = None
+		self.beerGlobalStyleScore = None
+		self.beerWeightedAvgScore = None
+		self.beerCountryOfOrigin = None
+		self.beerNumRatings = None
+		self.beerNumColories = None
+		self.beerABV = None
+
 	######
 	###### Data
 	###### 
