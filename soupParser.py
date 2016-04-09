@@ -136,12 +136,54 @@ def getBeerCountry(soup):
     return None
 
 def getBeerNumRatings(soup):
-    pass
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: number of ratings for this beer
+    """
+    target = soup.find_all('span', id = "_ratingCount8")[0].get_text()
+    return target
+
 def getBeerWeightedAvg(soup):
-    pass
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: number of ratings for this beer
+    """
+    target = soup.find_all('a', title = re.compile("The weighted average,.+"))[0]
+    pattern = "The weighted average,\s([0-9]+\.[0-9]*).+"
+    avg = re.search(pattern, target['title']).group(1)
+    return avg
+    
 def getBeerCalories(soup):
-    pass
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: number of colories
+    """
+    target = soup.find_all('big', style = "color: #777;")
+    pattern = "^([1-9][0-9]{1,3}[^%])$"
+    for t in target:
+        currSearch = re.search(pattern, t.get_text())
+        if currSearch != None:
+            return currSearch.group(1)
+    # return target
+
 def getBeerABV(soup):
-    pass
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: abv for this beer
+    """
+    target = soup.find_all('big', style = "color: #777;")
+    pattern = "^([0-9][0-9]?\.[0-9]%|[0-9]%)$"
+    for t in target:
+        currSearch = re.search(pattern, t.get_text())
+        if currSearch != None:
+            return currSearch.group(1)
+
 def getBeerGlobalInfo(soup):
-    pass
+    """
+    Given a beer page soup (likely from a urlToSoup call)
+    return :: list of global info
+    """
+    return [getBeerGlobalScore(soup), getBeerGlobalStyleScore(soup),\
+            getBeerBrewer(soup), getBeerStyle(soup), getBeerCountry(soup),\
+            getBeerNumRatings(soup), getBeerWeightedAvg(soup), getBeerCalories(soup),\
+            getBeerABV(soup)]

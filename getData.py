@@ -17,12 +17,17 @@ np.random.randint(1000)
 url = "http://www.ratebeer.com/beer/beerbliotek-imperial-mocha-latte-stout/296801/5011/"
 url2 = "http://www.ratebeer.com/beer/mikkeller-ramen-to-biiru/381088/345852/"
 
-soup = scraper.urlToSoup(url2)
-print soupParser.getBeerGlobalScore(soup)
-print soupParser.getBeerGlobalStyleScore(soup)
-print soupParser.getBeerBrewer(soup)
-print soupParser.getBeerStyle(soup)
-print soupParser.getBeerCountry(soup)
+soup = scraper.urlToSoup(url)
+# print soupParser.getBeerGlobalScore(soup)
+# print soupParser.getBeerGlobalStyleScore(soup)
+# print soupParser.getBeerBrewer(soup)
+# print soupParser.getBeerStyle(soup)
+# print soupParser.getBeerCountry(soup)
+# print soupParser.getBeerNumRatings(soup)
+# print soupParser.getBeerWeightedAvg(soup)
+# print soupParser.getBeerCalories(soup)
+# print soupParser.getBeerABV(soup)
+print soupParser.getBeerGlobalInfo(soup)
 
 
 # user = "1786"
