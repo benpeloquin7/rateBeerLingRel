@@ -7,8 +7,6 @@ import urllib
 import re
 import sys
 
-
-
 ## -------------------------------
 ## Cleaning / helpers
 ## ===============================

@@ -96,6 +96,17 @@ class ReviewData():
 	def getPalateScore(self):
 		return self.palateScore
 
+	## Beer Global Info
+	def setBeerGlobalInfo(self, data):
+		self.beerGlobalScore = data[1]
+		self.beerGlobalStyleScore = data[2]
+		self.brewerName = data[3]
+		self.beerWeightedAvgScore = data[3]
+		self.beerCountryOfOrigin = None
+		self.beerNumRatings = None
+		self.beerNumColories = None
+		self.beerABV = None
+
 	## Set above fields
 	def setData(self):
 		"""
