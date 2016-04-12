@@ -4,10 +4,12 @@ import pdb
 class ReviewData():
 	def __init__(self, userID, beerName, ratings, review):
 		## User info
+		## ---------
 		self.userID = userID
 		self.userName = None
 		self.userNumRated = None
 		## Current review info
+		## -------------------
 		self.beerName = beerName
 		self.ratingsBlob = ratings
 		self.reviewBlob = review
@@ -24,13 +26,15 @@ class ReviewData():
 		self.palateScore = None
 		self.palateScoreTotal = 5
 		## Beer global info
-		self.brewerName = None
+		## -----------------
 		self.beerGlobalScore = None
 		self.beerGlobalStyleScore = None
-		self.beerWeightedAvgScore = None
+		self.brewerName = None
+		self.beerStyleName = None
 		self.beerCountryOfOrigin = None
 		self.beerNumRatings = None
-		self.beerNumColories = None
+		self.beerWeightedAvgScore = None
+		self.beerNumCalories = None
 		self.beerABV = None
 
 	######
@@ -56,7 +60,7 @@ class ReviewData():
 	def getOverallScore(self):
 		return self.overallScore
 	
-	## Avg
+	## Avg score
 	def setAvgScore(self):
 		pattern = "^([0-5]\.[0-9])\sAROMA"
 		score = re.search(pattern, self.ratingsBlob)
@@ -96,19 +100,23 @@ class ReviewData():
 	def getPalateScore(self):
 		return self.palateScore
 
-	## Beer Global Info
+	## set global beer fields
 	def setBeerGlobalInfo(self, data):
-		self.beerGlobalScore = data[1]
-		self.beerGlobalStyleScore = data[2]
-		self.brewerName = data[3]
-		self.beerWeightedAvgScore = data[3]
-		self.beerCountryOfOrigin = None
-		self.beerNumRatings = None
-		self.beerNumColories = None
-		self.beerABV = None
+		"""
+		`data` should be returned from a call to soupParser.getBeerGlobalInfo()
+		"""
+		self.beerGlobalScore = data[0]
+		self.beerGlobalStyleScore = data[1]
+		self.brewerName = data[2]
+		self.beerStyleName = data[3]
+		self.beerCountryOfOrigin = data[4]
+		self.beerNumRatings = data[5]
+		self.beerWeightedAvgScore = data[6]
+		self.beerNumCalories = data[7]
+		self.beerABV = data[8]
 
-	## Set above fields
-	def setData(self):
+	## Set review fields
+	def setReviewData(self):
 		"""
 		Set internal data
 		"""
@@ -130,6 +138,8 @@ class ReviewData():
 		"""
 		pass
 
+
+	## NOTE: look at python pretty print functionality (pprint.py)
 	def prettyPrint(self):
 		"""
 		Pretty printing of internal data
@@ -140,7 +150,7 @@ class ReviewData():
 		print "userID:\t", self.userID
 		print "userName:\t", self.userName
 		print "userNumRated:\t", self.userNumRated
-		print "\t------BEER------"
+		print "\t------REVIEW------"
 		print "beerName:\t", self.beerName
 		print "overallScore:\t", self.overallScore
 		print "avgScore:\t", self.avgScore
@@ -150,15 +160,19 @@ class ReviewData():
 		print "palateScore:\t", self.palateScore
 		print "reviewBlob:\t", self.reviewBlob
 		print "ratingsBlob:\t", self.ratingsBlob
+		print "\t------GLOBAL_BEER------"
+		print ""
 
 	def outputToDict(self):
 		"""
 		Output internals to dictionary (for easy converstion to csv)
 		"""
 		dict = {
+			## User
 			userID : self.userID,
 			userName : self.userName,
 			userNumRated : self.userNumRated,
+			## Review
 			beerName : self.beerName,
 			overallScore : self.overallScore,
 			avgScore : self.avgScore,
@@ -167,6 +181,16 @@ class ReviewData():
 			tasteScore : self.tasteScore,
 			palateScore : self.palateScore,
 			reviewBlob : self.reviewBlob,
-			ratingsBlob : self.ratingsBlob
+			ratingsBlob : self.ratingsBlob,
+			## Beer global
+			beerGlobalScore : self.beerGlobalScore,
+			beerGlobalStyleScore : self.beerGlobalStyleScore,
+			brewerName : self.brewerName,
+			beerStyleName: self.beerStyleName,
+			beerCountryOfOrigin : self.beerCountryOfOrigin,
+			beerNumRatings : self.beerNumRatings,
+			beerWeightedAverage : self.beerWeightedAvgScore,
+			beerNumCalories : self.beerNumColories,
+			beerAbV : self.beerABV
 		}
 		return dict
