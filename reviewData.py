@@ -1,19 +1,23 @@
 import re
 import pprint
 import pdb
+import soupParser
+from bs4 import BeautifulSoup
 
 class ReviewData():
-	def __init__(self, userID, beerName, ratings, review):
+	def __init__(self):
+		# , userID, beerName, ratings, review
 		## User info
 		## ---------
-		self.userID = userID
+		self.userID = None
 		self.userName = None
 		self.userNumRated = None
+		self.url = None
 		## Current review info
 		## -------------------
-		self.beerName = beerName
-		self.ratingsBlob = ratings
-		self.reviewBlob = review
+		self.beerName = None
+		self.ratingsBlob = None
+		self.reviewBlob = None
 		self.overallScore = None
 		self.overallScoreTotal = 20
 		self.avgScore = None
@@ -41,6 +45,78 @@ class ReviewData():
 	######
 	###### Data
 	###### 
+	## Set all data wrapper
+	def setAllReviewData(self, userID, url, soup):
+		# Prelim data
+		data = soupParser.getBeerInfo(soup)
+		self.userID = userID
+		self.url = url
+		self.beerName = soupParser.removeNonAscii(data[0])
+		self.ratingsBlob = soupParser.removeNonAscii(data[1])
+		self.reviewBlob = soupParser.removeNonAscii(data[2])
+		# Set remaining data
+		self.setReviewData()
+		self.setBeerGlobalInfo(soupParser.getBeerGlobalInfo(soup))
+		self.cleanAllData()
+
+	## Set review fields
+	def setReviewData(self):
+		"""
+		Set internal data
+		"""
+		self.setUserName()
+		self.setUserNumRated()
+		self.setOverallScore()
+		self.setAvgScore()
+		self.setAromaScore()
+		self.setAppearanceScore()
+		self.setTasteScore()
+		self.setPalateScore()
+
+	## set global beer fields
+	def setBeerGlobalInfo(self, data):
+		"""
+		`data` should be returned from a call to soupParser.getBeerGlobalInfo()
+		"""
+		self.beerGlobalScore = data[0]
+		self.beerGlobalStyleScore = data[1]
+		self.brewerName = data[2]
+		self.beerStyleName = data[3]
+		self.beerCountryOfOrigin = data[4]
+		self.beerNumRatings = data[5]
+		self.beerWeightedAvgScore = data[6]
+		self.beerNumCalories = data[7]
+		self.beerABV = data[8]
+
+	## Remove non_ascii from all data
+	def cleanAllData(self):
+		self.userID = soupParser.removeNonAscii(self.userID)
+		self.userName = soupParser.removeNonAscii(self.userName)
+		self.userNumRated = soupParser.removeNonAscii(self.userNumRated)
+		## Current review info
+		## -------------------
+		self.beerName = soupParser.removeNonAscii(self.beerName)
+		self.ratingsBlob = soupParser.removeNonAscii(self.ratingsBlob)
+		self.reviewBlob = soupParser.removeNonAscii(self.reviewBlob)
+		self.overallScore = soupParser.removeNonAscii(self.overallScore)
+		self.overallScoreTotal = soupParser.removeNonAscii(self.overallScoreTotal)
+		self.avgScore = soupParser.removeNonAscii(self.avgScore)
+		self.aromaScore = soupParser.removeNonAscii(self.aromaScore)
+		self.appearanceScore = soupParser.removeNonAscii(self.appearanceScore)
+		self.tasteScore = soupParser.removeNonAscii(self.tasteScore)
+		self.palateScore = soupParser.removeNonAscii(self.palateScore)
+		## Beer global info
+		## -----------------
+		self.beerGlobalScore = soupParser.removeNonAscii(self.beerGlobalScore)
+		self.beerGlobalStyleScore = soupParser.removeNonAscii(self.beerGlobalStyleScore)
+		self.brewerName = soupParser.removeNonAscii(self.brewerName)
+		self.beerStyleName = soupParser.removeNonAscii(self.beerStyleName)
+		self.beerCountryOfOrigin = soupParser.removeNonAscii(self.beerCountryOfOrigin)
+		self.beerNumRatings = soupParser.removeNonAscii(self.beerNumRatings)
+		self.beerWeightedAvgScore = soupParser.removeNonAscii(self.beerWeightedAvgScore)
+		self.beerNumCalories = soupParser.removeNonAscii(self.beerNumCalories)
+		self.beerABV = soupParser.removeNonAscii(self.beerABV)
+
 
 	## User name
 	def setUserName(self):
@@ -63,7 +139,7 @@ class ReviewData():
 	
 	## Avg score
 	def setAvgScore(self):
-		pattern = "^([0-5]\.[0-9])\sAROMA"
+		pattern = "^([0-5](?:\.[0-9])?)\sAROMA"
 		score = re.search(pattern, self.ratingsBlob)
 		self.avgScore = score.group(1) if score != None else score
 	def getAvgScore(self):
@@ -101,34 +177,6 @@ class ReviewData():
 	def getPalateScore(self):
 		return self.palateScore
 
-	## set global beer fields
-	def setBeerGlobalInfo(self, data):
-		"""
-		`data` should be returned from a call to soupParser.getBeerGlobalInfo()
-		"""
-		self.beerGlobalScore = data[0]
-		self.beerGlobalStyleScore = data[1]
-		self.brewerName = data[2]
-		self.beerStyleName = data[3]
-		self.beerCountryOfOrigin = data[4]
-		self.beerNumRatings = data[5]
-		self.beerWeightedAvgScore = data[6]
-		self.beerNumCalories = data[7]
-		self.beerABV = data[8]
-
-	## Set review fields
-	def setReviewData(self):
-		"""
-		Set internal data
-		"""
-		self.setUserName()
-		self.setUserNumRated()
-		self.setOverallScore()
-		self.setAvgScore()
-		self.setAromaScore()
-		self.setAppearanceScore()
-		self.setTasteScore()
-		self.setPalateScore()
 	
 	######
 	###### Processing functionality
@@ -174,6 +222,7 @@ class ReviewData():
 		dict = {
 			## User
 			"userID" : self.userID,
+			"url": self.url,
 			"userName" : self.userName,
 			"userNumRated" : self.userNumRated,
 			## Review
