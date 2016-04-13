@@ -12,11 +12,12 @@ import pdb
 ## Cleaning / helpers
 ## ===============================
 def removeNonAscii(s):
+    if not isinstance(s, basestring): return s
     return ''.join([i if ord(i) < 128 else ''\
-                        for i in s])
+                for i in s])
 
 ## -------------------------------
-## Primary data extraction
+## Primary data extractionq
 ## ===============================
 def getTitle(soup):
     """
@@ -99,11 +100,10 @@ def getBeerGlobalStyleScore(soup):
     Given a beer page soup (likely from a urlToSoup call)
     return :: beers global score
     """
-    scorePattern1 = "background-color: #66A212; position: relative; left: 0px; top: -20px; " +\
-                    "width: 67px; height: 67px; border-radius: 67px; z-index: -1;text-align: center;"
+    scorePattern1 = "background-color: #66A212; position: relative; left: 0px; top: -20px; width: 67px; height: 67px; border-radius: 67px; z-index: -1;text-align: center;"
     currDiv = soup.find_all('div', style = scorePattern1)
     if currDiv == []: return None ## If score is empty return None
-    
+
     divAttrs = currDiv[0].attrs
     scorePattern2 = "^([1-9]+\.[0-9]*): This figure represents"
     if "title" in divAttrs.keys():
@@ -176,7 +176,7 @@ def getBeerABV(soup):
     return :: abv for this beer
     """
     target = soup.find_all('big', style = "color: #777;")
-    pattern = "^([0-9][0-9]?\.[0-9]%|[0-9]%)$"
+    pattern = "^([0-9][0-9]?(?:\.[0-9])?%)$"
     for t in target:
         currSearch = re.search(pattern, t.get_text())
         if currSearch != None:
