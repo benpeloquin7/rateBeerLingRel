@@ -13,6 +13,46 @@ np.random.seed(1786)
 np.random.randint(1000)
 
 
+
+#############
+#############
+#############
+############# Scrape review and global for a single url
+#############
+#############
+#############
+user = "83882"
+beerListURL = scraper.constructBeerListURL(user)
+beerURLs = scraper.getUserBeerURLs(beerListURL, user)
+reviews_store = []
+for url in beerURLs:
+	print url
+	soup = scraper.urlToSoup(url)
+	r_data = reviewData.ReviewData()
+	r_data.setAllReviewData(user, url, soup)
+	reviews_store.append(r_data.outputToDict())	
+
+keys = reviews_store[0].keys()
+with open(user + '.csv', 'wb') as output_file:
+    dict_writer = csv.DictWriter(output_file, keys)
+    dict_writer.writeheader()
+    dict_writer.writerows(reviews_store)
+
+
+#############
+#############
+#############
+############# Scrape review and global for a single url
+#############
+#############
+#############
+# url = "http://www.ratebeer.com/beer/allagash-little-brett/385843/83882/"
+# user = "83882"
+# soup = scraper.urlToSoup(url)
+# r_data = reviewData.ReviewData()
+# r_data.setAllReviewData(user, url, soup)
+# r_data.prettyPrint()
+
 ## Get beer global information
 # url = "http://www.ratebeer.com/beer/beerbliotek-imperial-mocha-latte-stout/296801/5011/"
 # url2 = "http://www.ratebeer.com/beer/mikkeller-ramen-to-biiru/381088/345852/"
@@ -29,30 +69,40 @@ np.random.randint(1000)
 # print soupParser.getBeerABV(soup)
 # print soupParser.getBeerGlobalInfo(soup)
 
-
-user = "1786"
-url = "http://www.ratebeer.com/beer/parallel-49--cannery-gimme-shelter/409009/1786/"
-soup = scraper.urlToSoup(url)
-data =  soupParser.getBeerInfo(soup)
-id = user
-beerName = soupParser.removeNonAscii(data[0])
-ratingsBlob = soupParser.removeNonAscii(data[1])
-reviewBlob = soupParser.removeNonAscii(data[2])
-data =\
-    reviewData.ReviewData(userID = id,
-    beerName = beerName,
-    ratings = ratingsBlob,
-    review = reviewBlob)
-data.setReviewData()
-data.setBeerGlobalInfo(soupParser.getBeerGlobalInfo(soup))
-data.prettyPrint()
-# data.setData()
+#############
+#############
+#############
+############# Scrape review and global for a single url
+#############
+#############
+#############
+# user = "1786"
+# url = "http://www.ratebeer.com/beer/parallel-49--cannery-gimme-shelter/409009/1786/"
+# soup = scraper.urlToSoup(url)
+# data =  soupParser.getBeerInfo(soup)
+# id = user
+# beerName = soupParser.removeNonAscii(data[0])
+# ratingsBlob = soupParser.removeNonAscii(data[1])
+# reviewBlob = soupParser.removeNonAscii(data[2])
+# data =\
+#     reviewData.ReviewData(userID = id,
+#     beerName = beerName,
+#     ratings = ratingsBlob,
+#     review = reviewBlob)
+# data.setReviewData()
+# data.setBeerGlobalInfo(soupParser.getBeerGlobalInfo(soup))
 # data.prettyPrint()
 
-# users = scraper.getUserIds(RBhelpers.TOP_RATERS_URL)
 
-# dataHold = []
 
+
+#############
+#############
+#############
+############# Scrape multiple users
+#############
+#############
+#############
 # for user in users[0:2]:
 #     beerListURL = scraper.constructBeerListURL(user)
 #     beerURLs = scraper.getUserBeerURLs(beerListURL, user)
