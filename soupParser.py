@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import urllib
 import re
 import sys
+import pdb
 
 ## -------------------------------
 ## Cleaning / helpers
@@ -82,8 +83,11 @@ def getBeerGlobalScore(soup):
     Given a beer page soup (likely from a urlToSoup call)
     return :: beers global score
     """
+    # pdb.set_trace()
     scorePattern1 = "font-size: 48px; font-weight: bold; color: #fff; padding: 7px 10px;"
     currDiv = soup.find_all('div', style = scorePattern1)
+    if currDiv == []: return None ## If score is empty return None
+
     divAttrs = currDiv[0].attrs
     scorePattern2 = "^([1-9]+\.[0-9]*): This figure represents"
     if "title" in divAttrs.keys():
@@ -98,6 +102,8 @@ def getBeerGlobalStyleScore(soup):
     scorePattern1 = "background-color: #66A212; position: relative; left: 0px; top: -20px; " +\
                     "width: 67px; height: 67px; border-radius: 67px; z-index: -1;text-align: center;"
     currDiv = soup.find_all('div', style = scorePattern1)
+    if currDiv == []: return None ## If score is empty return None
+    
     divAttrs = currDiv[0].attrs
     scorePattern2 = "^([1-9]+\.[0-9]*): This figure represents"
     if "title" in divAttrs.keys():

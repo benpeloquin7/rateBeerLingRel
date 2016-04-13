@@ -1,4 +1,5 @@
 import re
+import pprint
 import pdb
 
 class ReviewData():
@@ -144,24 +145,27 @@ class ReviewData():
 		"""
 		Pretty printing of internal data
 		"""
-		print "------------------"
-		print "=================="
-		print "\t------USER------"
-		print "userID:\t", self.userID
-		print "userName:\t", self.userName
-		print "userNumRated:\t", self.userNumRated
-		print "\t------REVIEW------"
-		print "beerName:\t", self.beerName
-		print "overallScore:\t", self.overallScore
-		print "avgScore:\t", self.avgScore
-		print "aromaScore:\t", self.aromaScore
-		print "appearanceScore:\t", self.appearanceScore
-		print "tasteScore:\t", self.tasteScore
-		print "palateScore:\t", self.palateScore
-		print "reviewBlob:\t", self.reviewBlob
-		print "ratingsBlob:\t", self.ratingsBlob
-		print "\t------GLOBAL_BEER------"
-		print ""
+		pp = pprint.PrettyPrinter(indent=4)
+		pp.pprint(self.outputToDict())
+
+		# print "------------------"
+		# print "=================="
+		# print "\t------USER------"
+		# print "userID:\t", self.userID
+		# print "userName:\t", self.userName
+		# print "userNumRated:\t", self.userNumRated
+		# print "\t------REVIEW------"
+		# print "beerName:\t", self.beerName
+		# print "overallScore:\t", self.overallScore
+		# print "avgScore:\t", self.avgScore
+		# print "aromaScore:\t", self.aromaScore
+		# print "appearanceScore:\t", self.appearanceScore
+		# print "tasteScore:\t", self.tasteScore
+		# print "palateScore:\t", self.palateScore
+		# print "reviewBlob:\t", self.reviewBlob
+		# print "ratingsBlob:\t", self.ratingsBlob
+		# print "\t------GLOBAL_BEER------"
+		# print ""
 
 	def outputToDict(self):
 		"""
@@ -169,28 +173,28 @@ class ReviewData():
 		"""
 		dict = {
 			## User
-			userID : self.userID,
-			userName : self.userName,
-			userNumRated : self.userNumRated,
+			"userID" : self.userID,
+			"userName" : self.userName,
+			"userNumRated" : self.userNumRated,
 			## Review
-			beerName : self.beerName,
-			overallScore : self.overallScore,
-			avgScore : self.avgScore,
-			aromaScore : self.aromaScore,
-			appearanceScore : self.appearanceScore,
-			tasteScore : self.tasteScore,
-			palateScore : self.palateScore,
-			reviewBlob : self.reviewBlob,
-			ratingsBlob : self.ratingsBlob,
+			"beerName" : self.beerName,
+			"overallScore" : self.overallScore,
+			"avgScore" : self.avgScore,
+			"aromaScore" : self.aromaScore,
+			"appearanceScore" : self.appearanceScore,
+			"tasteScore" : self.tasteScore,
+			"palateScore" : self.palateScore,
+			"reviewBlob" : self.reviewBlob,
+			"ratingsBlob" : self.ratingsBlob,
 			## Beer global
-			beerGlobalScore : self.beerGlobalScore,
-			beerGlobalStyleScore : self.beerGlobalStyleScore,
-			brewerName : self.brewerName,
-			beerStyleName: self.beerStyleName,
-			beerCountryOfOrigin : self.beerCountryOfOrigin,
-			beerNumRatings : self.beerNumRatings,
-			beerWeightedAverage : self.beerWeightedAvgScore,
-			beerNumCalories : self.beerNumColories,
-			beerAbV : self.beerABV
+			"beerGlobalScore" : self.beerGlobalScore,
+			"beerGlobalStyleScore" : self.beerGlobalStyleScore,
+			"brewerName" : self.brewerName,
+			"beerStyleName": self.beerStyleName,
+			"beerCountryOfOrigin" : self.beerCountryOfOrigin,
+			"beerNumRatings" : self.beerNumRatings,
+			"beerWeightedAverage" : self.beerWeightedAvgScore,
+			"beerNumCalories" : self.beerNumCalories,
+			"beerAbV" : self.beerABV
 		}
 		return dict

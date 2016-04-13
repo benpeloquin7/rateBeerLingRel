@@ -14,10 +14,10 @@ np.random.randint(1000)
 
 
 ## Get beer global information
-url = "http://www.ratebeer.com/beer/beerbliotek-imperial-mocha-latte-stout/296801/5011/"
-url2 = "http://www.ratebeer.com/beer/mikkeller-ramen-to-biiru/381088/345852/"
+# url = "http://www.ratebeer.com/beer/beerbliotek-imperial-mocha-latte-stout/296801/5011/"
+# url2 = "http://www.ratebeer.com/beer/mikkeller-ramen-to-biiru/381088/345852/"
 
-soup = scraper.urlToSoup(url)
+# soup = scraper.urlToSoup(url)
 # print soupParser.getBeerGlobalScore(soup)
 # print soupParser.getBeerGlobalStyleScore(soup)
 # print soupParser.getBeerBrewer(soup)
@@ -27,24 +27,25 @@ soup = scraper.urlToSoup(url)
 # print soupParser.getBeerWeightedAvg(soup)
 # print soupParser.getBeerCalories(soup)
 # print soupParser.getBeerABV(soup)
-print soupParser.getBeerGlobalInfo(soup)
+# print soupParser.getBeerGlobalInfo(soup)
 
 
-# user = "1786"
-# url = "http://www.ratebeer.com/beer/parallel-49--cannery-gimme-shelter/409009/1786/"
-# soup = scraper.urlToSoup(url)
-# data =  soupParser.getBeerInfo(soup)
-# id = user
-# beerName = soupParser.removeNonAscii(data[0])
-# ratingsBlob = soupParser.removeNonAscii(data[1])
-# reviewBlob = soupParser.removeNonAscii(data[2])
-# data =\
-#     reviewData.ReviewData(userID = id,
-#     beerName = beerName,
-#     ratings = ratingsBlob,
-#     review = reviewBlob)
-
-# data.prettyPrint()
+user = "1786"
+url = "http://www.ratebeer.com/beer/parallel-49--cannery-gimme-shelter/409009/1786/"
+soup = scraper.urlToSoup(url)
+data =  soupParser.getBeerInfo(soup)
+id = user
+beerName = soupParser.removeNonAscii(data[0])
+ratingsBlob = soupParser.removeNonAscii(data[1])
+reviewBlob = soupParser.removeNonAscii(data[2])
+data =\
+    reviewData.ReviewData(userID = id,
+    beerName = beerName,
+    ratings = ratingsBlob,
+    review = reviewBlob)
+data.setReviewData()
+data.setBeerGlobalInfo(soupParser.getBeerGlobalInfo(soup))
+data.prettyPrint()
 # data.setData()
 # data.prettyPrint()
 
