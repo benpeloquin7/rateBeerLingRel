@@ -75,13 +75,13 @@ def parse_bs4URLs(urls, key = 'href', pattern = ".", groupNum = 0):
     return goodURLs
 
 
-def createUserCSV(userID, reviewsList):
+def createUserCSV(userID, reviewsList, filePath):
     """
     Given a list of recommendation objects, write to a csv file
     """
     if len(reviewsList) > 0:
         keys = reviewsList[0].keys()
-        with open(userID + '.csv', 'wb') as output_file:
+        with open(filePath + userID + '.csv', 'wb') as output_file:
             dict_writer = csv.DictWriter(output_file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(reviewsList)
