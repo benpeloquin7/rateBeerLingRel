@@ -8,6 +8,7 @@ import soupParser
 import urllib
 import re
 import sys
+import csv
 import pdb
 
 
@@ -72,6 +73,18 @@ def parse_bs4URLs(urls, key = 'href', pattern = ".", groupNum = 0):
         if match:
             goodURLs.append(match.group(groupNum))
     return goodURLs
+
+
+def createUserCSV(userID, reviewsList):
+    """
+    Given a list of recommendation objects, write to a csv file
+    """
+    if len(reviewsList) > 0:
+        keys = reviewsList[0].keys()
+        with open(userID + '.csv', 'wb') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(reviewsList)
 
 ## -------------------------------
 ## Main functionality
