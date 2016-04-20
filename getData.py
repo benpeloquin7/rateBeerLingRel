@@ -5,6 +5,7 @@ import scraper
 import soupParser
 import RateBeerHelpers as RBhelpers
 import reviewData
+import userPage
 import csv
 import numpy as np
 
@@ -21,22 +22,92 @@ np.random.randint(1000)
 #############
 #############
 #############
-user = "83882"
-beerListURL = scraper.constructBeerListURL(user)
-beerURLs = scraper.getUserBeerURLs(beerListURL, user)
+id = "83882"
+uPage = userPage.UserPage(id)
+uPage.setAllFields()
+beerURLs = uPage.getBeerList()
+
 reviews_store = []
 for url in beerURLs:
 	print url
 	soup = scraper.urlToSoup(url)
 	r_data = reviewData.ReviewData()
-	r_data.setAllReviewData(user, url, soup)
-	reviews_store.append(r_data.outputToDict())	
+	r_data.setAllReviewData(id, url, soup)
+	d = r_data.outputToDict()
+	d.update(uPage.outputToDict())
+	reviews_store.append(d)	
 
 keys = reviews_store[0].keys()
-with open(user + '.csv', 'wb') as output_file:
+with open(id + '.csv', 'wb') as output_file:
     dict_writer = csv.DictWriter(output_file, keys)
     dict_writer.writeheader()
     dict_writer.writerows(reviews_store)
+
+
+
+
+
+#############
+#############
+#############
+############# Scrape User page info
+#############
+#############
+#############
+# id = "304719"
+# url = "http://www.ratebeer.com/user/304719/"
+
+# uPage = userPage.UserPage(id)
+# uPage.setAllFields()
+# print uPage.prettyPrint()
+
+
+#############
+#############
+#############
+############# Scrape review and global for a single url
+#############
+#############
+#############
+# user = "83882"
+# beerListURL = scraper.constructBeerListURL(user)
+# beerURLs = scraper.getUserBeerURLs(beerListURL, user)
+# reviews_store = []
+# for url in beerURLs:
+# 	print url
+# 	soup = scraper.urlToSoup(url)
+# 	r_data = reviewData.ReviewData()
+# 	r_data.setAllReviewData(user, url, soup)
+# 	reviews_store.append(r_data.outputToDict())	
+
+# keys = reviews_store[0].keys()
+# with open(user + '.csv', 'wb') as output_file:
+#     dict_writer = csv.DictWriter(output_file, keys)
+#     dict_writer.writeheader()
+#     dict_writer.writerows(reviews_store)
+
+
+
+# badUserId = "12000"
+# print scraper.getUserBeerURLs(scraper.constructBeerListURL(badUserId), badUserId)
+
+## userPage scrape
+
+## http://www.ratebeer.com/user/304719/
+
+
+
+
+## 1) compile random list of user id's
+
+
+## 2) for each user id - get beer list
+
+	## if beer list < 5 skip
+	## else get beer list
+
+## 3) for each beer in beer list scrape beers, store in user.csv
+
 
 
 #############

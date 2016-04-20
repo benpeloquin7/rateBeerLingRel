@@ -12,7 +12,6 @@ class UserPage():
 		self.soup = None
 		self.beerList = None
 		self.userName = None
-		self.bio = None ## location ???
 		self.numRatings = None
 		self.numPlaces = None
 		self.numBreweries = None
@@ -20,41 +19,90 @@ class UserPage():
 		self.numStyles = None
 		self.numFollowing = None
 		self.numFriends = None
-		self.memberSince = None
 		self.profileBio = None
 
 	def setAllFields(self):
 		self.setUrl()
-		self.setBeerList()
 		self.setSoup()
-		self.setUserName
-
+		self.setBeerList()
+		self.setUserName()
+		self.setNumRatings()
+		self.setNumPlaces()
+		self.setNumBreweries()
+		self.setNumCountries()
+		self.setNumStyles()
+		self.setNumFollowing()
+		self.setNumFriends()
+		self.setProfileBio()
 	def setUrl(self):
 		self.url = scraper.constructBeerListURL(self.userID)
-	def setBeerList(self):
-		self.beerList = scraper.getUserBeerURLs(self.url, self.userID)
 	def setSoup(self):
 		self.soup = scraper.urlToSoup(self.url)
+	def setBeerList(self):
+		self.beerList = scraper.getUserBeerURLs(self.url, self.userID)
+	def getBeerList(self):
+		return self.beerList
 	def setUserName(self):
 		if self.soup == None: return
 		userName = self.soup.find_all("span", class_ = "username")
 		if len(userName) > 0:
 			self.userName = userName[0].get_text()
 	def setNumRatings(self):
-		pass
+		if self.soup == None: return
+		numRatings = self.soup.find_all("div", id = "beer-ratings")
+		if len(numRatings) > 0:
+			self.numRatings = numRatings[0].get_text()
 	def setNumPlaces(self):
-		pass
+		if self.soup == None: return
+		numPlaces = self.soup.find_all("div", id = "place-ratings")
+		if len(numPlaces) > 0:
+			self.numPlaces = numPlaces[0].get_text()
 	def setNumBreweries(self):
-		pass
+		if self.soup == None: return
+		numBreweries = self.soup.find_all("div", id = "breweries")
+		if len(numBreweries) > 0:
+			self.numBreweries = numBreweries[0].get_text()
 	def setNumCountries(self):
-		pass
+		if self.soup == None: return
+		numCountries = self.soup.find_all("div", id = "countries-rated")
+		if len(numCountries) > 0:
+			self.numCountries = numCountries[0].get_text()
 	def setNumStyles(self):
-		pass
+		if self.soup == None: return
+		numStyles = self.soup.find_all("div", id = "style-ratings")
+		if len(numStyles) > 0:
+			self.numStyles = numStyles[0].get_text()
 	def setNumFollowing(self):
-		pass
+		if self.soup == None: return
+		numFollowing = self.soup.find_all("div", id = "following")
+		if len(numFollowing) > 0:
+			self.numFollowing = numFollowing[0].get_text()
 	def setNumFriends(self):
-		pass	
-	def setMemberSince(self):
-		pass	
-	def setBio(self):
-		pass	
+		if self.soup == None: return
+		numFriends = self.soup.find_all("div", id = "friends")
+		if len(numFriends) > 0:
+			self.numFriends = numFriends[0].get_text()
+	def setProfileBio(self):
+		if self.soup == None: return
+		bioInfo = self.soup.find_all("div", id = "user-bio-block")
+		if len(bioInfo) > 0:
+			self.profileBio = bioInfo[0].get_text()
+
+	def prettyPrint(self):
+		pp = pprint.PrettyPrinter(indent=4)
+		pp.pprint(self.outputToDict())
+
+	def outputToDict(self):
+		dict = {
+			"userID" : self.userID,
+			"url": self.url,
+			"userName" : self.userName,
+			"userNumRatings" : self.numRatings,
+			"numPlacesRated" : self.numPlaces,
+			"numBreweriesRated" : self.numBreweries,
+			"numCountriesRated" : self.numCountries,
+			"numFollowing" : self.numFollowing,
+			"numFriends" : self.numFriends,
+			"profileBio" : self.profileBio
+		}
+		return dict

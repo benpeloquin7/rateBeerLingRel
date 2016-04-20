@@ -221,10 +221,10 @@ class ReviewData():
 		"""
 		dict = {
 			## User
-			"userID" : self.userID,
-			"url": self.url,
-			"userName" : self.userName,
-			"userNumRated" : self.userNumRated,
+			# "userID" : self.userID,
+			# "url": self.url,
+			# "userName" : self.userName,
+			# "userNumRated" : self.userNumRated,
 			## Review
 			"beerName" : self.beerName,
 			"overallScore" : self.overallScore,

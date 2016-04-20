@@ -6,24 +6,24 @@
 #############
 #############
 import reviewData
+import userPage
 import scraper
 from RateBeerHelpers import LOWEST_USER_ID, HIGHEST_USER_ID
 import random
 import csv
 
-random.seed(100)
-n = 100
+random.seed(500)
+n = 500
 userIDs = random.sample(range(LOWEST_USER_ID, HIGHEST_USER_ID), n)
 
 badIDsList = []
-
 for userID in userIDs:
-	userID = str(userID)
-	beerListURL = scraper.constructBeerListURL(userID)
-	beerURLs = scraper.getUserBeerURLs(beerListURL, userID)
+	uPage = userPage.UserPage(userID)
+	uPage.setAllFields()
+	beerURLs = beerURLs = uPage.getBeerList()
 
 	## only take reviewers with over 5 beers
-	if len(beerURLs) < 5:
+	if len(beerURLs) < 3:
 		badIDsList.append(userID)
 		continue
 	
@@ -33,11 +33,13 @@ for userID in userIDs:
 		soup = scraper.urlToSoup(url)
 		r_data = reviewData.ReviewData()
 		r_data.setAllReviewData(userID, url, soup)
-		reviews_store.append(r_data.outputToDict())	
+		d = r_data.outputToDict()
+		d.update(uPage.outputToDict())
+		reviews_store.append(d)	
 
 	scraper.createUserCSV(userID, reviews_store, "data/")
 
-with open('data/badUserIds.txt', 'wb') as output_file:
+with open('data/badUserIds2.txt', 'wb') as output_file:
 	for id in badIDsList:
 		output_file.write(str(id) + ',')
 

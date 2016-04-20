@@ -81,7 +81,7 @@ def createUserCSV(userID, reviewsList, filePath):
     """
     if len(reviewsList) > 0:
         keys = reviewsList[0].keys()
-        with open(filePath + userID + '.csv', 'wb') as output_file:
+        with open(filePath + str(userID) + '.csv', 'wb') as output_file:
             dict_writer = csv.DictWriter(output_file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(reviewsList)
