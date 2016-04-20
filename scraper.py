@@ -16,21 +16,21 @@ import pdb
 ## Helpers
 ## ===============================
 def urlToSoup(url, selenium = False):
-	"""
-	Given a url return soup object
-	set `selenium` to True if we need web driver
-	to load dynamic content...
-	"""
-	if selenium:
-		browser = webdriver.Firefox()
-        browser.set_window_size(1, 1)
-		browser.get(url)
-		soup = BeautifulSoup(browser.page_source, "html.parser")
-		browser.close()
-	else:
-		htmlData = urllib.urlopen(url).read()
-		soup = BeautifulSoup(htmlData, "html.parser")
-	return soup
+    """
+    Given a url return soup object
+    set `selenium` to True if we need web driver
+    to load dynamic content...
+    """
+    if selenium:
+        browser = webdriver.Firefox()
+        # browser.set_window_size(1, 1)
+        browser.get(url)
+        soup = BeautifulSoup(browser.page_source, "html.parser")
+        browser.close()
+    else:
+        htmlData = urllib.urlopen(url).read()
+        soup = BeautifulSoup(htmlData, "html.parser")
+    return soup
 
 def convertURLs(urls, fn):
     """
@@ -82,7 +82,7 @@ def createUserCSV(userID, reviewsList, filePath):
     """
     if len(reviewsList) > 0:
         keys = reviewsList[0].keys()
-        with open(filePath + str(userID + '.csv', 'wb') as output_file:
+        with open(filePath + str(userID) + '.csv', 'wb') as output_file:
             dict_writer = csv.DictWriter(output_file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(reviewsList)
