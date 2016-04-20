@@ -23,6 +23,7 @@ def urlToSoup(url, selenium = False):
 	"""
 	if selenium:
 		browser = webdriver.Firefox()
+        browser.set_window_size(1, 1)
 		browser.get(url)
 		soup = BeautifulSoup(browser.page_source, "html.parser")
 		browser.close()
@@ -81,7 +82,7 @@ def createUserCSV(userID, reviewsList, filePath):
     """
     if len(reviewsList) > 0:
         keys = reviewsList[0].keys()
-        with open(filePath + str(userID) + '.csv', 'wb') as output_file:
+        with open(filePath + str(userID + '.csv', 'wb') as output_file:
             dict_writer = csv.DictWriter(output_file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(reviewsList)
