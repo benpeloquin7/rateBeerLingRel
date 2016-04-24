@@ -2,6 +2,7 @@ import re
 import pprint
 import pdb
 import soupParser
+import scraper
 from bs4 import BeautifulSoup
 
 class ReviewData():
@@ -46,8 +47,9 @@ class ReviewData():
 	###### Data
 	###### 
 	## Set all data wrapper
-	def setAllReviewData(self, userID, url, soup):
+	def setAllReviewData(self, userID, url):
 		# Prelim data
+		soup = scraper.urlToSoup(url)
 		data = soupParser.getBeerInfo(soup)
 		self.userID = userID
 		self.url = url
