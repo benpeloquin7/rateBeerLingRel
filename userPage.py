@@ -36,8 +36,12 @@ class UserPage():
 		self.setProfileBio()
 	def setUrl(self):
 		self.url = scraper.constructBeerListURL(self.userID)
+	def getUrl(self):
+		return self.url
 	def setSoup(self):
 		self.soup = scraper.urlToSoup(self.url)
+	def getSoup(self):
+		return self.soup
 	def setBeerList(self):
 		self.beerList = scraper.getUserBeerURLs(self.url, self.userID)
 	def getBeerList(self):
