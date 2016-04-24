@@ -222,30 +222,26 @@ class ReviewData():
 		Output internals to dictionary (for easy converstion to csv)
 		"""
 		dict = {
-			## User
-			# "userID" : self.userID,
-			# "url": self.url,
-			# "userName" : self.userName,
-			# "userNumRated" : self.userNumRated,
 			## Review
-			"beerName" : self.beerName,
-			"overallScore" : self.overallScore,
-			"avgScore" : self.avgScore,
-			"aromaScore" : self.aromaScore,
-			"appearanceScore" : self.appearanceScore,
-			"tasteScore" : self.tasteScore,
-			"palateScore" : self.palateScore,
-			"reviewBlob" : self.reviewBlob,
-			"ratingsBlob" : self.ratingsBlob,
+			"review_overall_score" : self.overallScore,
+			"review_avg_score" : self.avgScore,
+			"review_aroma_score" : self.aromaScore,
+			"review_appearance_score" : self.appearanceScore,
+			"review_taste_score" : self.tasteScore,
+			"review_palate_score" : self.palateScore,
+			"review_blob" : self.reviewBlob,
+			"review_ratings_blob" : self.ratingsBlob,
 			## Beer global
-			"beerGlobalScore" : self.beerGlobalScore,
-			"beerGlobalStyleScore" : self.beerGlobalStyleScore,
-			"brewerName" : self.brewerName,
-			"beerStyleName": self.beerStyleName,
-			"beerCountryOfOrigin" : self.beerCountryOfOrigin,
-			"beerNumRatings" : self.beerNumRatings,
-			"beerWeightedAverage" : self.beerWeightedAvgScore,
-			"beerNumCalories" : self.beerNumCalories,
-			"beerAbV" : self.beerABV
+			"beer_name" : self.beerName,
+			"beer_url" : self.url,
+			"beer_global_score" : self.beerGlobalScore,
+			"beer_global_style_score" : self.beerGlobalStyleScore,
+			"beer_brewer_name" : self.brewerName,
+			"beer_style": self.beerStyleName,
+			"beer_location" : self.beerCountryOfOrigin,
+			"beer_num_ratings" : self.beerNumRatings,
+			"beer_weighted_avg_score" : self.beerWeightedAvgScore,
+			"beer_num_calories" : self.beerNumCalories,
+			"beer_ABV" : self.beerABV
 		}
 		return dict

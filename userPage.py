@@ -88,25 +88,25 @@ class UserPage():
 			self.numFriends = numFriends[0].get_text()
 	def setProfileBio(self):
 		if self.soup == None: return
-		bioInfo = self.soup.find_all("div", id = "user-bio-block")
+		bioInfo = self.soup.find_all("div", class_ = "biography")
 		if len(bioInfo) > 0:
-			self.profileBio = bioInfo[0].get_text()
-
+			pattern = '[\n\r\t]'
+			self.profileBio = re.sub(pattern, '', bioInfo[0].get_text())
 	def prettyPrint(self):
 		pp = pprint.PrettyPrinter(indent=4)
 		pp.pprint(self.outputToDict())
 
 	def outputToDict(self):
 		dict = {
-			"userID" : self.userID,
-			"url": self.url,
-			"userName" : self.userName,
-			"userNumRatings" : self.numRatings,
-			"numPlacesRated" : self.numPlaces,
-			"numBreweriesRated" : self.numBreweries,
-			"numCountriesRated" : self.numCountries,
-			"numFollowing" : self.numFollowing,
-			"numFriends" : self.numFriends,
-			"profileBio" : self.profileBio
+			"user_id" : self.userID,
+			"user_url": self.url,
+			"user_name" : self.userName,
+			"user_num_ratings" : self.numRatings,
+			"user_num_places_rated" : self.numPlaces,
+			"user_num_breweries_rated" : self.numBreweries,
+			"user_num_countries_rated" : self.numCountries,
+			"user_num_following" : self.numFollowing,
+			"user_num_friends" : self.numFriends,
+			"user_location" : self.profileBio
 		}
 		return dict
