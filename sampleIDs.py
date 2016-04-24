@@ -20,7 +20,7 @@ from collections import defaultdict
 ####
 
 random.seed(8)
-NUM_IDS = 20000
+NUM_IDS = 50000
 RATE_LIMIT_VALUE = 20
 RATE_LIMIT_PAUSE_TIME = 40
 goodIDs = []
