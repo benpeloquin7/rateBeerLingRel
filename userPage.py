@@ -34,6 +34,9 @@ class UserPage():
 		self.setNumFollowing()
 		self.setNumFriends()
 		self.setProfileBio()
+		## run cleaning
+		self.cleanAllData()
+
 	def setUrl(self):
 		self.url = scraper.constructBeerListURL(self.userID)
 	def getUrl(self):
@@ -95,6 +98,18 @@ class UserPage():
 	def prettyPrint(self):
 		pp = pprint.PrettyPrinter(indent=4)
 		pp.pprint(self.outputToDict())
+
+	def cleanAllData(self):
+		self.userID = soupParser.removeNonAscii(self.userID)
+		self.url = soupParser.removeNonAscii(self.url)
+		self.userName = soupParser.removeNonAscii(self.userName)
+		self.numRatings = soupParser.removeNonAscii(self.numRatings)
+		self.numPlaces = soupParser.removeNonAscii(self.numPlaces)
+		self.numBreweries = soupParser.removeNonAscii(self.numBreweries)
+		self.numCountries = soupParser.removeNonAscii(self.numCountries)
+		self.numFollowing = soupParser.removeNonAscii(self.numFollowing)
+		self.numFriends = soupParser.removeNonAscii(self.numFriends)
+		self.profileBio = soupParser.removeNonAscii(self.profileBio)
 
 	def outputToDict(self):
 		dict = {
