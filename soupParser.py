@@ -90,7 +90,7 @@ def getBeerGlobalScore(soup):
     if currDiv == []: return None ## If score is empty return None
 
     divAttrs = currDiv[0].attrs
-    scorePattern2 = "^([1-9]+\.[0-9]*): This figure represents"
+    scorePattern2 = "^([0-9]+\.[0-9]*): This figure represents"
     if "title" in divAttrs.keys():
         currSearch = re.search(scorePattern2, divAttrs["title"])
     return currSearch.group(1) if currSearch != None else None
@@ -105,7 +105,7 @@ def getBeerGlobalStyleScore(soup):
     if currDiv == []: return None ## If score is empty return None
 
     divAttrs = currDiv[0].attrs
-    scorePattern2 = "^([1-9]+\.[0-9]*): This figure represents"
+    scorePattern2 = "^([0-9]+\.[0-9]*): This figure represents"
     if "title" in divAttrs.keys():
         currSearch = re.search(scorePattern2, divAttrs["title"])
     return currSearch.group(1) if currSearch != None else None
@@ -132,11 +132,14 @@ def getBeerCountry(soup):
     return :: beer's country
     """
     target = soup.find_all('div', style = "padding-bottom: 7px; line-height: 1.5;")[0]
-    pattern = ".+,\s([A-Z]\w+)\s"
+    pattern = ".+,\s([A-Z]\w+(?:\s[A-Z]\w+)?)"
+    # pattern = "([A-Z]\w+,\s[A-Z](?:\w|\s)+)$"
+    # pattern = ',\s(\w+)\s*$'
     for t in target:
         currSearch = re.search(pattern, t.get_text())
         if currSearch != None:
-            return currSearch.group(1)
+            pattern = '\s{2,}'
+            return re.sub(pattern, ', ', currSearch.group(1))
     return None
 
 def getBeerNumRatings(soup):
@@ -176,7 +179,7 @@ def getBeerABV(soup):
     return :: abv for this beer
     """
     target = soup.find_all('big', style = "color: #777;")
-    pattern = "^([0-9][0-9]?(?:\.[0-9])?%)$"
+    pattern = "^([0-9][0-9]?(?:\.[0-9]+)?%)$"
     for t in target:
         currSearch = re.search(pattern, t.get_text())
         if currSearch != None:
