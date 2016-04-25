@@ -115,16 +115,22 @@ def getBeerBrewer(soup):
     Given a beer page soup (likely from a urlToSoup call)
     return :: beer's brewer (brand)
     """
-    target = soup.find_all('a', id = '_brand4')[0]
-    return target.get_text()
+    target = soup.find_all('a', id = '_brand4')
+    if target: 
+        return target[0].get_text()
+    else: 
+        return None
 
 def getBeerStyle(soup):
     """
     Given a beer page soup (likely from a urlToSoup call)
     return :: beer's style
     """
-    target = soup.find_all('a', href = re.compile("/beerstyles/.+"))[0]
-    return target.get_text()
+    target = soup.find_all('a', href = re.compile("/beerstyles/.+"))
+    if target:
+        return target[0].get_text()
+    else: return None
+    
     
 def getBeerCountry(soup):
     """
@@ -147,8 +153,9 @@ def getBeerNumRatings(soup):
     Given a beer page soup (likely from a urlToSoup call)
     return :: number of ratings for this beer
     """
-    target = soup.find_all('span', id = "_ratingCount8")[0].get_text()
-    return target
+    target = soup.find_all('span', id = "_ratingCount8")
+    if target: return target[0].get_text()
+    else:  return None
 
 def getBeerWeightedAvg(soup):
     """
@@ -156,9 +163,10 @@ def getBeerWeightedAvg(soup):
     return :: number of ratings for this beer
     """
     target = soup.find_all('a', title = re.compile("The weighted average,.+"))[0]
-    pattern = "The weighted average,\s([0-9]+\.[0-9]*).+"
-    avg = re.search(pattern, target['title']).group(1)
-    return avg
+    pattern = "The weighted average,\s([0-9]+(?:\.[0-9]*)?).+"
+    avg = re.search(pattern, target['title'])
+    if avg: return avg.group(1)
+    else: return None
     
 def getBeerCalories(soup):
     """
@@ -171,7 +179,7 @@ def getBeerCalories(soup):
         currSearch = re.search(pattern, t.get_text())
         if currSearch != None:
             return currSearch.group(1)
-    # return target
+    return None
 
 def getBeerABV(soup):
     """
