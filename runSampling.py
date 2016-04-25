@@ -1,5 +1,6 @@
 import reviewData
 import scraper
+import soupParser
 import userPage
 from RateBeerHelpers import LOWEST_USER_ID, HIGHEST_USER_ID
 import os
@@ -12,14 +13,17 @@ from collections import defaultdict
 
 
 RATE_LIMIT_VALUE = 20
-RATE_LIMIT_PAUSE_TIME = 0
+RATE_LIMIT_PAUSE_TIME = 40
 
 
 #################################################
 ####### Helpers
 #######
 def increment_counter(i, stop_value, stop_rate):
+	time.sleep(4)
 	if i % stop_value == 0:
+		print "i: ", i
+		print "sleeping for ", stop_rate, " seconds..."
 		time.sleep(stop_rate)
 	return i + 1
 
@@ -29,7 +33,6 @@ def review_list_to_csv(path, data):
 		dict_writer = csv.DictWriter(output_file, keys)
 		dict_writer.writeheader()
 		dict_writer.writerows(data)
-
 
 #################################################
 ####### Set-up
@@ -59,7 +62,8 @@ for id in users:
 	if id in alread_scraped_users:
 		print "already seen user ", id, "!!!!"
 		continue
-	pdb.set_trace()
+	print "=============="
+	print "user id: ", id
 	uPage = userPage.UserPage(id)
 	uPage.setAllFields()
 	user_data = uPage.outputToDict()
@@ -67,6 +71,7 @@ for id in users:
 
 	## Iterate over (up to 50) user beers
 	for beer_url in uPage.getBeerList():
+		print '\t' + beer_url
 		data_store = dict()
 		data_store = user_data.copy()
 		r_data = reviewData.ReviewData()
@@ -76,6 +81,8 @@ for id in users:
 		user_reviews.append(data_store)
 
 	## Write to csv
+	print "writing to csv..."
+	print '=================='
 	path = reviews_store_path + id
 	review_list_to_csv(path, user_reviews)
 	
