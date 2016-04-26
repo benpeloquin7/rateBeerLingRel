@@ -133,7 +133,7 @@ class ReviewData():
 
 	## Overall
 	def setOverallScore(self):
-		pattern = "OVERALL\s(1?[0-9])/20"
+		pattern = "OVERALL\s((?:1|2)?[0-9])/20"
 		score = re.search(pattern, self.ratingsBlob)
 		self.overallScore = score.group(1) if score != None else score
 	def getOverallScore(self):
@@ -145,7 +145,7 @@ class ReviewData():
 		score = re.search(pattern, self.ratingsBlob)
 		self.avgScore = score.group(1) if score != None else score
 	def getAvgScore(self):
-		return self.totalScore
+		return self.avgScore
 	
 	## Aroma
 	def setAromaScore(self):
