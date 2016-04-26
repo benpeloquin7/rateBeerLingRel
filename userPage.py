@@ -53,7 +53,7 @@ class UserPage():
 		if self.soup == None: return
 		userName = self.soup.find_all("span", class_ = "username")
 		if len(userName) > 0:
-			self.userName = userName[0].get_text()
+			self.userName = str(userName[0].get_text())
 	def setNumRatings(self):
 		if self.soup == None: return
 		numRatings = self.soup.find_all("div", id = "beer-ratings")
