@@ -1,10 +1,7 @@
-rm(list = ls())
-
 library(ggplot2)
 library(tidyr)
 library(dplyr)
 library(stringr)
-setwd("/Users/benpeloquin/Desktop/Spring2016/CS224U/rateBeerLingRel")
 
 ####
 #### Number of scrape
@@ -15,13 +12,13 @@ timeNeededInSeconds <- function(nIDs, pauseTime, pauseValue) {
   nonBreakSeconds <- (nIDs - nBreaks) * 5
   breakSeconds + nonBreakSeconds
 }
-timeNeededInSeconds(5000, 40, 20) / 60 / 60 ## These are good settings
 
-####
-#### Sample Ids
-####
-print_ids_summary <- function() {
-  d <- read.csv("data/good.csv")
+######
+###### print_ids_summary()
+###### print the number of ids and reviews we've scraped
+######
+print_ids_summary <- function(d) {
+  
   names(d) <- c("userID", "n")
   numReviews <- sum(d$n)
   numReviewers <- nrow(d)
@@ -40,19 +37,11 @@ print_ids_summary <- function() {
     ggplot(aes(x = n, y = counts)) +
     geom_bar(stat = "identity")
 }
-print_ids_summary()
 
-
-####
-#### run sampling
-####
-path <- "data/reviews_store/"
-files <- list.files(path)
-d.raw <- data.frame()
-for (f in files){
-  d <- read.csv(paste0(path, f))
-  d.raw <- rbind(d.raw, d)
-}
+######
+###### print_review_summary()
+###### summary of reviews data
+######
 print_review_summary <- function(d.raw) {
   
   n_users <- length(unique(d.raw$user_id))
@@ -68,8 +57,11 @@ print_review_summary <- function(d.raw) {
       geom_point(alpha = 0.4, size = 3, col = "blue")
       # geom_bar(stat = "identity")
 }
-print_review_summary(d.raw)
 
+######
+###### review_summary_plots()
+###### plots of review aspects
+######
 review_summary_plots <- function(d.raw) {
   d.raw %>%
     gather(type, score,
@@ -83,35 +75,32 @@ review_summary_plots <- function(d.raw) {
     geom_bar() +
     facet_wrap(~type, scales = "free")
 }
-review_summary_plots(d.raw)
 
-beer_summary_plots <- function() {}
+######
+###### review_aspect_correlations()
+###### correlations between reviews aspects
+######
+review_aspect_correlations <- function(d.raw) {
+  d.raw %>%
+    select(review_palate_score,
+           review_taste_score,
+           review_aroma_score,
+           review_avg_score,
+           review_appearance_score) %>%
+    as.matrix() %>%
+    cor(use = "pairwise.complete.obs")
+}
+
+######
+###### beer_summary_plots()
+###### summary of beers
+######
+beer_summary_plots <- function() {0}
   
-## Review aspect correlations
-d.raw %>%
-  select(review_palate_score,
-         review_taste_score,
-         review_aroma_score,
-         review_avg_score,
-         review_appearance_score) %>%
-  as.matrix() %>%
-  cor(use = "pairwise.complete.obs")
-
-
-# str(d.raw)
-# d.raw %>%
-#   gather(type, score,
-#          c(beer_ABV
-#            beer_num_calories,
-#            beer_num_ratings,
-#            beer_global_score,
-#            beer_weighted_avg_score,
-#            beer_global_style_score
-# )) %>%
-#   ggplot(aes(score)) +
-#   geom_bar() +
-#   facet_wrap(~type, scales = "free")
-
+######
+###### missing_data_summary()
+###### summary of missing data
+######
 missing_data_summary <- function(d.raw) {
   cat(paste0("-------------- REVIEW ----------------"), "\n")
   cat(paste0("===================================="), "\n")
@@ -195,19 +184,3 @@ missing_data_summary <- function(d.raw) {
   miss_user_num_countries_rated <- nrow(d.raw[which(is.na(d.raw$user_num_countries_rated)), ])
   cat(paste0("Missing user num countries rated: ", miss_user_num_countries_rated), "\n")
 }
-missing_data_summary(d.raw)
-
-
-
-### Quick work to take care of missing overall scores (20pt scores)
-urls <- d.raw[which(is.na(d.raw$beer_num_calories)), ]$user_url
-pattern <- '([0-9]{3,6})'
-missing_overall_score_ids <- unique(sapply(urls, function(url) {
-  str_match(url, pattern)[, 2]  
-}))
-
-d.raw[which(is.na(d.raw$beer_num_calories)),][2,]
-
-# write.csv(missing_overall_score_ids, file = "missingOverallScores.csv")
-
-
