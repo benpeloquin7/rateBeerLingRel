@@ -53,8 +53,13 @@ print_review_summary <- function(d.raw) {
     select(user_id, user_num_ratings) %>%
     group_by(user_num_ratings) %>%
     summarise(count = n()) %>%
-    ggplot(aes(x = log(user_num_ratings), y = log(count))) +
-      geom_point(alpha = 0.4, size = 3, col = "blue")
+    ggplot(aes(x = log(count), y = log(user_num_ratings))) +
+      ylab("Log count number of reviews made") +
+      xlab("Log count number of users") +
+      ylim(0, 10) +
+      xlim(0, 10) +
+      # scale_x_reverse() +
+      geom_point(alpha = 0.25, size = 3, col = "blue")
       # geom_bar(stat = "identity")
 }
 
