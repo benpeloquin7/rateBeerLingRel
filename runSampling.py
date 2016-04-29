@@ -20,7 +20,7 @@ RATE_LIMIT_PAUSE_TIME = 40
 ####### Helpers
 #######
 def increment_counter(i, stop_value, stop_rate):
-	time.sleep(4)
+	time.sleep(3)
 	if i % stop_value == 0:
 		print "i: ", i
 		print "sleeping for ", stop_rate, " seconds..."
@@ -41,7 +41,7 @@ def review_list_to_csv(path, data):
 ## Get all the users we've already scraped
 reviews_store_path = 'data/reviews_store/'
 pattern = "([0-9]+).csv"
-alread_scraped_users = set([re.findall(pattern, user)[0] for user in os.listdir(reviews_store_path)])
+already_scraped_users = set([re.findall(pattern, user)[0] for user in os.listdir(reviews_store_path)])
 ## Get all 'good' users (with 1 or more reviews)
 good_users_path = 'data/good.csv'
 users = []
@@ -59,7 +59,8 @@ i = 0 # Avoid rate-limits
 
 ## Iterate over users
 for id in users:
-	if id in alread_scraped_users:
+	if id in already_scraped_users:
+		i += 1
 		print "already seen user ", id, "!!!!"
 		continue
 	print "=============="
