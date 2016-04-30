@@ -100,7 +100,11 @@ review_aspect_correlations <- function(d.raw) {
 ###### beer_summary_plots()
 ###### summary of beers
 ######
-beer_summary_plots <- function() {0}
+beer_abv_plot <- function(d.raw) {
+  d.raw %>%
+    ggplot(aes(x = beer_ABV_num)) +
+      geom_histogram(binwidth = 1)
+}
   
 ######
 ###### missing_data_summary()
