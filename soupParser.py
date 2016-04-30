@@ -24,7 +24,10 @@ def getTitle(soup):
     Extract beer title
     return :: string beer name
     """
-    return soup.find("h1").get_text()
+    title = soup.find("h1") 
+    if title: 
+        return title.get_text()
+    else: return None
 
 def getScores(soup):
     """
@@ -137,11 +140,12 @@ def getBeerCountry(soup):
     Given a beer page soup (likely from a urlToSoup call)
     return :: beer's country
     """
-    target = soup.find_all('div', style = "padding-bottom: 7px; line-height: 1.5;")[0]
+    target = soup.find_all('div', style = "padding-bottom: 7px; line-height: 1.5;")
+    if not target: return None
     pattern = ".+,\s([A-Z]\w+(?:\s[A-Z]\w+)?)"
     # pattern = "([A-Z]\w+,\s[A-Z](?:\w|\s)+)$"
     # pattern = ',\s(\w+)\s*$'
-    for t in target:
+    for t in target[0]:
         currSearch = re.search(pattern, t.get_text())
         if currSearch != None:
             pattern = '\s{2,}'
@@ -162,7 +166,9 @@ def getBeerWeightedAvg(soup):
     Given a beer page soup (likely from a urlToSoup call)
     return :: number of ratings for this beer
     """
-    target = soup.find_all('a', title = re.compile("The weighted average,.+"))[0]
+    target = soup.find_all('a', title = re.compile("The weighted average,.+"))
+    if not target: return None
+    target = target[0]
     pattern = "The weighted average,\s([0-9]+(?:\.[0-9]*)?).+"
     avg = re.search(pattern, target['title'])
     if avg: return avg.group(1)
