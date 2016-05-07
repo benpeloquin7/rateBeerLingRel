@@ -32,20 +32,29 @@ d.raw <- d.raw %>%
   rowwise %>%
   mutate(beer_ABV_num = as.numeric(stri_match_all_regex(as.character(beer_ABV), ABV_pattern)[[1]][1,2]))
 
-## ID analysis
-# good_ids <- read.csv("data/good.csv")
-# timeNeededInSeconds(5000, 40, 20) / 60 / 60 ## These are good settings
-
-print_ids_summary(good_ids)
+#####
+##### Prelim summary stats
+#####
 print_review_summary(d.raw)
+print_ids_summary(good_ids)
 review_summary_plots(d.raw)
 review_aspect_correlations(d.raw)
 missing_data_summary(d.raw)
 
+#####
+##### Cleaned data - remove missing reviews
+#####
+d.clean <- d.raw %>%
+  filter(!is.na(review_blob),
+         !is.na(review_palate_score),
+         !is.na(review_aroma_score),
+         !is.na(review_taste_score),
+         !is.na(review_appearance_score),
+         !is.na(review_overall_score))
+# write.csv(d.clean, "data/clean_data.csv")
 
+## beer ABV plot
 beer_abv_plot(d.raw)
-ggplot(d.raw, aes(x = beer_ABV_num, y = review_avg_score)) +
-  geom_point()
 
 ## beer styles
 length(unique(d.raw$beer_style))
@@ -56,16 +65,43 @@ d.raw %>%
 
 ## individual beers
 length(unique(d.raw$beer_name))
-d.raw %>%
-  group_by(beer_name) %>%
-  summarise(count = n()) %>%
-  arrange(-count)
 
 ## Number of users with over n reviews
 d.raw %>%
   mutate(expert = user_num_ratings >= 50) %>%
   group_by(expert) %>%
   summarise(count = n())
+
+## How does the number of review predict your predictability
+d.raw %>%
+  filter(user_num_ratings >= 50) %>%
+  group_by(user_id) %>%
+  mutate(review_overall_score = review_overall_score / 4,
+         review_taste_score = review_taste_score / 2,
+         review_aroma_score = review_aroma_score / 2) %>%
+  summarise(avgOverallScore = mean(review_overall_score),
+            varOverallScore = var(review_overall_score),
+            avgTasteScore = mean(review_taste_score),
+            varTasteScore = var(review_taste_score),
+            avgAromaScore = mean(review_aroma_score),
+            varAromaScore = var(review_aroma_score),
+            avgAppearanceScore = mean(review_appearance_score),
+            varAppearanceScore = var(review_appearance_score),
+            avgPalateScore = mean(review_palate_score),
+            varPalateScore = var(review_palate_score),
+            numReviews = unique(user_num_ratings),
+            overall_distance = abs(abs(avgTasteScore - avgAromaScore) - abs(avgAppearanceScore - avgPalateScore))) %>%
+  gather(type, value, c(varTasteScore, varAromaScore, varAppearanceScore, varPalateScore)) %>%
+  ggplot(aes(x = log(numReviews), y = value, col = type)) +
+    geom_point(alpha = 0.5) +
+    facet_wrap(~type)+
+    geom_smooth(method = "lm")
+
+
+
+
+
+
 
 
 ### Quick work to take care of missing overall scores (20pt scores)
@@ -77,12 +113,6 @@ missing_overall_score_ids <- unique(sapply(urls, function(url) {
 d.raw[which(is.na(d.raw$beer_num_calories)),][2,]
 # write.csv(missing_overall_score_ids, file = "missingOverallScores.csv")
 
-
-df1 <- d.raw[1:100,]
-
-df1 %>%
-  mutate(lang = textcat(review_blob)) %>%
-  View()
 
 
 
