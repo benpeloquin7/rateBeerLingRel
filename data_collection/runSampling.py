@@ -39,11 +39,11 @@ def review_list_to_csv(path, data):
 #######
 
 ## Get all the users we've already scraped
-reviews_store_path = 'data/reviews_store/'
+reviews_store_path = '../data/reviews_store/'
 pattern = "([0-9]+).csv"
 already_scraped_users = set([re.findall(pattern, user)[0] for user in os.listdir(reviews_store_path)])
 ## Get all 'good' users (with 1 or more reviews)
-good_users_path = 'data/good.csv'
+good_users_path = '../data/good.csv'
 users = []
 with open(good_users_path, 'r') as input:
 	reader = csv.reader(input, delimiter = ',')
