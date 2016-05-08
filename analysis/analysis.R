@@ -45,14 +45,16 @@ missing_data_summary(d.raw)
 ##### Cleaned data - remove missing reviews
 #####
 d.clean <- d.raw %>%
-  filter(!is.na(review_blob),
+  filter(review_blob != '',
+         !is.nan(review_blob),
+         !is.na(review_blob),
          !is.na(review_palate_score),
          !is.na(review_aroma_score),
          !is.na(review_taste_score),
          !is.na(review_appearance_score),
          !is.na(review_overall_score))
-# write.csv(d.clean, "data/clean_data.csv")
-
+write.csv(d.clean, "data/clean_data_full.csv")
+nrow(d.clean)
 ## beer ABV plot
 beer_abv_plot(d.raw)
 
