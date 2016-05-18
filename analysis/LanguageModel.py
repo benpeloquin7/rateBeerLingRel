@@ -77,10 +77,9 @@ class UnigramLM_Laplace(LanguageModel):
 		unigram_vectorizer.fit_transform([curr_example])
 		unigram_count_matrix = unigram_vectorizer.transform([curr_example])
 
-		## bigram score calculation
 		for gram, count in zip(unigram_vectorizer.get_feature_names(), np.asarray(unigram_count_matrix.sum(axis=0)).ravel()):
-			score += math.log(count) + math.log(self.ngrams_dict[gram] + 1)            ## Laplace smoothing with +1 / UNK implicitly
-			score -= math.log(count) + math.log(self.training_vocab_size + self.training_total_tokens) ## Laplace smoothing with +1 / UNK with max(x, 1)
+			score += math.log(count) + math.log(self.ngrams_dict[gram] + 1)
+			score -= math.log(count) + math.log(self.training_total_tokens + self.training_vocab_size)
 
 		exponent = -float(1) / example_length
 		pp_score = math.pow(math.exp(score), exponent)
@@ -102,13 +101,10 @@ class BigramLM_Laplace(LanguageModel):
 		bigram_vectorizer.fit_transform([curr_example])
 		bigram_count_matrix = bigram_vectorizer.transform([curr_example])
 
-		## bigram score calculation
 		for gram, count in zip(bigram_vectorizer.get_feature_names(), np.asarray(bigram_count_matrix.sum(axis=0)).ravel()):
-			## Laplace smoothing with +1 / UNK implicitly
 			score += math.log(count) + math.log(self.ngrams_dict[gram] + 1)
 			leading_unigram = self.get_leading_unigram(gram)
-			## Laplace smoothing with +1 / UNK with max(x, 1)
-			score -= math.log(count) * math.log(self.ngrams_dict[leading_unigram] + self.training_vocab_size)
+			score -= math.log(count) + math.log(self.ngrams_dict[leading_unigram] + self.training_vocab_size)
 
 		exponent = -float(1) / example_length
 		pp_score = math.pow(math.exp(score), exponent)
@@ -130,13 +126,39 @@ class TrigramLM_Laplace(LanguageModel):
 		trigram_vectorizer.fit_transform([curr_example])
 		trigram_count_matrix = trigram_vectorizer.transform([curr_example])
 
+		for gram, count in zip(trigram_vectorizer.get_feature_names(), np.asarray(trigram_count_matrix.sum(axis=0)).ravel()):
+			score += math.log(count) + math.log(self.ngrams_dict[gram] + 1)
+			leading_bigram = self.get_leading_bigram(gram)
+			score -= math.log(count) + math.log(self.ngrams_dict[leading_bigram] + self.training_vocab_size)
+
+		exponent = -float(1) / example_length
+		pp_score = math.pow(math.exp(score), exponent)
+
+		return pp_score
+
+
+class Trigram_Interpolated_LM(LanguageModel):
+
+	def score(self, curr_example):		
+		example_length = len(curr_example.split())
+
+		## In the case of the trigram model avoid one word case
+		if example_length < 3:
+			return float('inf')
+
+		score = 0
+
+		trigram_vectorizer = CountVectorizer(ngram_range=(3,3))
+		trigram_vectorizer.fit_transform([curr_example])
+		trigram_count_matrix = trigram_vectorizer.transform([curr_example])
+
 		## bigram score calculation
 		for gram, count in zip(trigram_vectorizer.get_feature_names(), np.asarray(trigram_count_matrix.sum(axis=0)).ravel()):
 			## Laplace smoothing with +1 / UNK implicitly
 			score += math.log(count) + math.log(self.ngrams_dict[gram] + 1)
 			leading_bigram = self.get_leading_bigram(gram)
 			## Laplace smoothing with +1 / UNK with max(x, 1)
-			score -= math.log(count) * math.log(self.ngrams_dict[leading_bigram] + self.training_vocab_size)
+			score -= math.log(count) + math.log(self.ngrams_dict[leading_bigram] + self.training_vocab_size)
 
 		exponent = -float(1) / example_length
 		pp_score = math.pow(math.exp(score), exponent)
@@ -146,10 +168,10 @@ class TrigramLM_Laplace(LanguageModel):
 if __name__ == '__main__':
 	trial_data = ['hello world', 'hello world oh, hello jim again', 'i am sam']
 
-	lm = LanguageModel()
-	lm.train(trial_data)
-	print "score 1:\t", lm.score('hello world')
-	print "score 2:\t", lm.score('over the rainbow')
-	print "score 3:\t", lm.score('were waiting along time for many things to come')
-	print "score 4:\t", lm.score('world oh, jim')
-	print lm.get_words_and_counts()
+	# lm = LanguageModel()
+	# lm.train(trial_data)
+	# print "score 1:\t", lm.score('hello world')
+	# print "score 2:\t", lm.score('over the rainbow')
+	# print "score 3:\t", lm.score('were waiting along time for many things to come')
+	# print "score 4:\t", lm.score('world oh, jim')
+	# print lm.get_words_and_counts()
