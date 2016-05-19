@@ -28,17 +28,17 @@ class LanguageModel:
 		self.UNK = "UNK"
 		self.START_SYMBOL = "__START__"
 		self.END_SYMBOL = "__END__"
+		self.VECTORIZER_TOKEN_PATTERN = u"(?u)\\b\\w+\\b"
 
 		self.verbose = verbose
 		
 		## Scikit-learn text feature extraction helpers -- parameters
-		token_pattern = u"(?u)\\b\\w+\\b"
 		self.ngram_vectorizer = CountVectorizer(ngram_range=ngram_range,\
 								min_df = 1,\
 								max_df = 1.0,\
 								lowercase = True,\
 								analyzer = "word",\
-								token_pattern=token_pattern)
+								token_pattern=self.VECTORIZER_TOKEN_PATTERN)
 
 	def add_start_end_tokens(self, data):
 		processed_data = self.START_SYMBOL + ' ' + data + ' ' + self.END_SYMBOL
@@ -70,6 +70,12 @@ class LanguageModel:
 	def get_leading_bigram(self, gram):
 		return (' ').join(gram.split()[:2])
 
+	def get_current_unigram(self, gram):
+		return gram.split()[-1]
+
+	def get_current_bigram(self, gram):
+		return (' ').join(gram.split()[-2:])
+
 	def get_words_and_counts(self):
 		return([(word, count) for word, count in self.ngrams_dict.items()])
 
@@ -91,23 +97,25 @@ class UnigramLM_Laplace(LanguageModel):
 		# pdb.set_trace()		
 		processed_example = self.add_start_end_tokens(curr_example)
 		example_length = len(processed_example.split())
-		n_size = 0
-
-
-		score = 0
-
-		unigram_vectorizer = CountVectorizer(ngram_range=(1,1))
+	
+		unigram_vectorizer = CountVectorizer(ngram_range=(1,1),\
+												min_df=1,\
+												max_df=1.0,\
+												lowercase=True,
+												analyzer="word",
+												token_pattern=self.VECTORIZER_TOKEN_PATTERN)
 		unigram_vectorizer.fit_transform([processed_example])
 		unigram_count_matrix = unigram_vectorizer.transform([processed_example])
-
+		
+		score = 0
 		for gram, count in zip(unigram_vectorizer.get_feature_names(), np.asarray(unigram_count_matrix.sum(axis=0)).ravel()):
 			score += count * math.log(self.ngrams_dict[gram] + 1)
 			score -= count * math.log(self.training_total_tokens + self.training_vocab_size)
-			# n_size += count
 
+		print "score:\t", score
 		exponent = -float(1) / example_length
 		pp_score = math.pow(math.exp(score), exponent)
-		
+
 		return [pp_score, score]
 
 class BigramLM_Laplace(LanguageModel):
@@ -116,24 +124,24 @@ class BigramLM_Laplace(LanguageModel):
 		# pdb.set_trace()	
 		processed_example = self.add_start_end_tokens(curr_example)
 		example_length = len(processed_example.split())
-		n_size = 0
-
-		## In the case of the bigram model avoid one word case
-		if example_length < 2:
-			return float('inf')
-
-		score = 0
-
-		bigram_vectorizer = CountVectorizer(ngram_range=(2,2))
+	
+		bigram_vectorizer = CountVectorizer(ngram_range=(2,2),\
+												min_df=1,\
+												max_df=1.0,\
+												lowercase=True,
+												analyzer="word",
+												token_pattern=self.VECTORIZER_TOKEN_PATTERN)
 		bigram_vectorizer.fit_transform([processed_example])
 		bigram_count_matrix = bigram_vectorizer.transform([processed_example])
 
+		score = 0
 		for gram, count in zip(bigram_vectorizer.get_feature_names(), np.asarray(bigram_count_matrix.sum(axis=0)).ravel()):
 			score += count * math.log(self.ngrams_dict[gram] + 1)
 			leading_unigram = self.get_leading_unigram(gram)
 			score -= count * math.log(self.ngrams_dict[leading_unigram] + self.training_vocab_size)
 			# n_size += count
 
+		print "score:\t", score
 		exponent = -float(1) / example_length
 		pp_score = math.pow(math.exp(score), exponent)
 
@@ -146,58 +154,71 @@ class TrigramLM_Laplace(LanguageModel):
 		processed_example = self.add_start_end_tokens(curr_example)
 		example_length = len(processed_example.split())
 
-		## In the case of the trigram model avoid one word case
-		if example_length < 3:
-			return float('inf')
-
-		n_size = 0
-		score = 0
-
-		trigram_vectorizer = CountVectorizer(ngram_range=(3,3))
+		trigram_vectorizer = CountVectorizer(ngram_range=(3,3),\
+												min_df=1,\
+												max_df=1.0,\
+												lowercase=True,
+												analyzer="word",
+												token_pattern=self.VECTORIZER_TOKEN_PATTERN)
 		trigram_vectorizer.fit_transform([processed_example])
 		trigram_count_matrix = trigram_vectorizer.transform([processed_example])
 
+		score = 0
 		for gram, count in zip(trigram_vectorizer.get_feature_names(), np.asarray(trigram_count_matrix.sum(axis=0)).ravel()):
 			score += count * math.log(self.ngrams_dict[gram] + 1)
 			leading_bigram = self.get_leading_bigram(gram)
 			score -= count * math.log(self.ngrams_dict[leading_bigram] + self.training_vocab_size)
 			# n_size += count
 
+		print "score:\t", score
 		exponent = -float(1) / example_length
 		pp_score = math.pow(math.exp(score), exponent)
 
 		return [pp_score, score]
 
 
-class Trigram_Interpolated_LM(LanguageModel):
+class Trigram_SB_LM(LanguageModel):
 
 	def score(self, curr_example):		
+
+		## Num words
 		example_length = len(curr_example.split())
 
-		## In the case of the trigram model avoid one word case
-		if example_length < 3:
-			return float('inf')
-
-		n_size = 0
-		score = 0
-
-		trigram_vectorizer = CountVectorizer(ngram_range=(3,3))
+		## Populate Trigrams
+		trigram_vectorizer = CountVectorizer(ngram_range=(3,3),\
+												min_df=1,\
+												max_df=1.0,\
+												lowercase=True,
+												analyzer="word",
+												token_pattern=self.VECTORIZER_TOKEN_PATTERN)
 		trigram_vectorizer.fit_transform([curr_example])
 		trigram_count_matrix = trigram_vectorizer.transform([curr_example])
 
-		## bigram score calculation
+		## Trigram stupid backoff score calculation
+		score = 0
 		for gram, count in zip(trigram_vectorizer.get_feature_names(), np.asarray(trigram_count_matrix.sum(axis=0)).ravel()):
-			## Laplace smoothing with +1 / UNK implicitly
-			score += math.log(count) + math.log(self.ngrams_dict[gram] + 1)
 			leading_bigram = self.get_leading_bigram(gram)
-			## Laplace smoothing with +1 / UNK with max(x, 1)
-			score -= math.log(count) + math.log(self.ngrams_dict[leading_bigram] + self.training_vocab_size)
-			n_size += count
+			curr_bigram = self.get_current_bigram(gram)
+			curr_unigram = self.get_current_unigram(gram)
 
-		exponent = -float(1) / n_size
+			## trigrams
+			if self.ngrams_dict[gram] != 0:
+				score += count * math.log(self.ngrams_dict[gram])
+				score -= count * math.log(self.ngrams_dict[leading_bigram])
+			## back-off to bigrams
+			elif self.ngrams_dict[curr_bigram] != 0:
+				score += 0.4 * count * math.log(self.ngrams_dict[curr_bigram])
+				score -= count * math.log(self.ngrams_dict[curr_unigram])
+			## back-off to smoothed unigrams
+			else:
+				score += 0.4**2 * count * math.log(self.ngrams_dict[curr_unigram] + 1)
+				score -= count * math.log(self.training_total_tokens + self.training_vocab_size)
+		
+		print "score:\t", score
+		exponent = -float(1) / example_length
 		pp_score = math.pow(math.exp(score), exponent)
 
-		return pp_score
+		return [pp_score, score]
 
 if __name__ == '__main__':
 	# data_path = '../data/clean_data_full.csv'
@@ -238,29 +259,3 @@ if __name__ == '__main__':
 	bigram_lm.print_internals(print_vocab = True)
 	print unigram_lm.score(test1)
 	print bigram_lm.score(test1)
-
-
-
-	# print 'words and counts:\t', unigram_lm.get_words_and_counts()
-	# print 'vocab_size\t', unigram_lm.training_vocab_size
-	# print 'unigramtraining_total_tokens
-	# bigram_lm = BigramLM_Laplace()
-	# bigram_lm.train(corpus)
-	# trigram_lm = TrigramLM_Laplace()
-	# trigram_lm.train(corpus)
-
-	# print("unigram test1:\t", unigram_lm.score(test1))
-	# print("unigram test2:\t", unigram_lm.score(test2))
-	# print("unigram test3:\t", unigram_lm.score(test3))
-
-	# print("bigram test1:\t", bigram_lm.score(test1))
-	# print("bigram test2:\t", bigram_lm.score(test2))
-	# print("bigram test3:\t", bigram_lm.score(test3))	
-
-	# lm = LanguageModel()
-	# lm.train(trial_data)
-	# print "score 1:\t", lm.score('hello world')
-	# print "score 2:\t", lm.score('over the rainbow')
-	# print "score 3:\t", lm.score('were waiting along time for many things to come')
-	# print "score 4:\t", lm.score('world oh, jim')
-	# print lm.get_words_and_counts()
