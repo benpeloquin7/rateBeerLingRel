@@ -93,7 +93,6 @@ class LanguageModel:
 class UnigramLM_Laplace(LanguageModel):
 
 	def score(self, curr_example):	
-		# pdb.set_trace()		
 		processed_example = self.add_start_end_tokens(curr_example)
 		example_length = len(processed_example.split())
 	
@@ -111,11 +110,11 @@ class UnigramLM_Laplace(LanguageModel):
 			score += count * math.log(self.ngrams_dict[gram] + 1)
 			score -= count * math.log(self.training_total_tokens + self.training_vocab_size)
 
-		print "score:\t", score
+		## Calculate perplexity for scoring
 		exponent = -float(1) / example_length
-		pp_score = math.pow(math.exp(score), exponent)
+		pp_score = math.pow(math.exp(score), exponent) if math.exp(score) > 0.0 else float('+inf')
 
-		return [pp_score, score]
+		return pp_score
 
 class BigramLM_Laplace(LanguageModel):
 
@@ -140,11 +139,11 @@ class BigramLM_Laplace(LanguageModel):
 			score -= count * math.log(self.ngrams_dict[leading_unigram] + self.training_vocab_size)
 			# n_size += count
 
-		print "score:\t", score
+		## Calculate perplexity for scoring
 		exponent = -float(1) / example_length
-		pp_score = math.pow(math.exp(score), exponent)
+		pp_score = math.pow(math.exp(score), exponent) if math.exp(score) > 0.0 else float('+inf')
 
-		return [pp_score, score]
+		return pp_score
 
 class TrigramLM_Laplace(LanguageModel):
 
@@ -168,8 +167,9 @@ class TrigramLM_Laplace(LanguageModel):
 			leading_bigram = self.get_leading_bigram(gram)
 			score -= count * math.log(self.ngrams_dict[leading_bigram] + self.training_vocab_size)
 
+		## Calculate perplexity for scoring
 		exponent = -float(1) / example_length
-		pp_score = math.pow(math.exp(score), exponent)
+		pp_score = math.pow(math.exp(score), exponent) if math.exp(score) > 0.0 else float('+inf')
 
 		return pp_score
 
