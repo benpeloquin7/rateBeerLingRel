@@ -87,7 +87,6 @@ class LanguageModel:
 		print "----------------------"
 		print 'vocab_size:\t', self.training_vocab_size
 		print 'total_tokens:\t', self.training_total_tokens
-		print 'ngram_dict:\t', self.ngrams_dict
 		if print_vocab: print 'vocab:\t', self.ngram_vectorizer.get_feature_names()
 
 
@@ -168,21 +167,22 @@ class TrigramLM_Laplace(LanguageModel):
 			score += count * math.log(self.ngrams_dict[gram] + 1)
 			leading_bigram = self.get_leading_bigram(gram)
 			score -= count * math.log(self.ngrams_dict[leading_bigram] + self.training_vocab_size)
-			# n_size += count
 
-		print "score:\t", score
 		exponent = -float(1) / example_length
 		pp_score = math.pow(math.exp(score), exponent)
 
-		return [pp_score, score]
+		return pp_score
 
 
 class Trigram_SB_LM(LanguageModel):
 
-	def score(self, curr_example):		
+	def score(self, curr_example):	
 
-		## Num words
-		example_length = len(curr_example.split())
+		# print 'curr_example', curr_example
+		processed_example = self.add_start_end_tokens(curr_example)
+		# print 'processed_example', processed_example 
+		example_length = len(processed_example.split())
+		# print 'processed_example', processed_example
 
 		## Populate Trigrams
 		trigram_vectorizer = CountVectorizer(ngram_range=(3,3),\
@@ -191,8 +191,8 @@ class Trigram_SB_LM(LanguageModel):
 												lowercase=True,
 												analyzer="word",
 												token_pattern=self.VECTORIZER_TOKEN_PATTERN)
-		trigram_vectorizer.fit_transform([curr_example])
-		trigram_count_matrix = trigram_vectorizer.transform([curr_example])
+		trigram_vectorizer.fit_transform([processed_example])
+		trigram_count_matrix = trigram_vectorizer.transform([processed_example])
 
 		## Trigram stupid backoff score calculation
 		score = 0
@@ -214,11 +214,11 @@ class Trigram_SB_LM(LanguageModel):
 				score += 0.4**2 * count * math.log(self.ngrams_dict[curr_unigram] + 1)
 				score -= count * math.log(self.training_total_tokens + self.training_vocab_size)
 		
-		print "score:\t", score
+		## Calculate perplexity for scoring
 		exponent = -float(1) / example_length
-		pp_score = math.pow(math.exp(score), exponent)
+		pp_score = math.pow(math.exp(score), exponent) if math.exp(score) > 0.0 else float('+inf')
 
-		return [pp_score, score]
+		return pp_score
 
 if __name__ == '__main__':
 	# data_path = '../data/clean_data_full.csv'
