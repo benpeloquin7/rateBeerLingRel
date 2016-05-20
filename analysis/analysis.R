@@ -13,48 +13,91 @@ source("analysis/analysis_helpers.R")
 ####
 #### Read in data
 ####
-path <- "data/reviews_store/"
-files <- list.files(path)
-d.raw <- data.frame()
-for (f in files) {
-  d <- read.csv(paste0(path, f))
-  d.raw <- rbind(d.raw, d)
+d.raw <- read.csv("data/clean_data_full.csv", stringsAsFactors = FALSE)
+if (!inGlobalEnv("d.raw")) {
+  ptm <- proc.time()
+  path <- "data/reviews_store/"
+  files <- list.files(path)
+  d.raw <- data.frame()
+  for (f in files) {
+    d <- read.csv(paste0(path, f))
+    d.raw <- rbind(d.raw, d)
+  }
+  proc.time() - ptm  
 }
 
 #####
-##### Data processing
+##### write data
 #####
 
-## Get ABV
+
+## Append quantile column
+##
+
+
+#####
+##### Cleaned data - remove missing reviews
+#####
+
+## Add in ABV
 ABV_pattern <- "([0-9]{1,2}(?:\\.[0-9])?)%"
 stri_match_all_regex(as.character(d.raw$beer_ABV[1000]), ABV_pattern)[[1]][1,2]
 d.raw <- d.raw %>%
   rowwise %>%
   mutate(beer_ABV_num = as.numeric(stri_match_all_regex(as.character(beer_ABV), ABV_pattern)[[1]][1,2]))
 
-#####
-##### Prelim summary stats
-#####
-print_review_summary(d.raw)
-print_ids_summary(good_ids)
-review_summary_plots(d.raw)
-review_aspect_correlations(d.raw)
-missing_data_summary(d.raw)
-
-#####
-##### Cleaned data - remove missing reviews
-#####
+## other filtering
+must_contain_chars_pattern <- '^[^a-zA-Z]*$'
+nrow(d.clean)
 d.clean <- d.raw %>%
   filter(review_blob != '',
+         !grepl(must_contain_chars_pattern, review_blob),
+         review_blob != ' ',
          !is.nan(review_blob),
          !is.na(review_blob),
          !is.na(review_palate_score),
          !is.na(review_aroma_score),
          !is.na(review_taste_score),
          !is.na(review_appearance_score),
-         !is.na(review_overall_score))
-write.csv(d.clean, "data/clean_data_full.csv")
-nrow(d.clean)
+         !is.na(review_overall_score)) %>%
+  ## Append quantile column
+  mutate(user_experience = ifelse(user_num_ratings < 18, 'Q1',
+                                  ifelse(user_num_ratings >= 18 & user_num_ratings < 72, 'Q2',
+                                         ifelse(user_num_ratings >= 72 & user_num_ratings < 278, 'Q3', 'Q4'))))
+#write.csv(d.clean, "data/clean_data_full.csv")
+d.clean <- d.raw
+
+# which(sapply(d.clean$review_blob, FUN = function(review) !grepl(pattern, review)))
+
+
+bad1 <- '                             ???????? ??????? ????, ?? ? ??????? ???????? ? ??????. ????? ???? ???? ????????? ?????'
+bad2 <- '&# '
+good1 <- 'ben'
+good2 <- 'A%'
+grepl(pattern, good2)
+
+d.clean$review_blob[49]
+#####
+##### Prelim summary stats
+#####
+print_review_summary(d.clean)
+print_ids_summary(good_ids)
+review_summary_plots(d.clean)
+review_aspect_correlations(d.raw)
+missing_data_summary(d.raw)
+
+
+stats::quantile(d.clean$user_num_ratings)
+d.quantiles <- d.clean %>%
+  mutate(quantile = ifelse(user_num_ratings < 18, 'first',
+                           ifelse(user_num_ratings < 72, 'second',
+                                  ifelse(user_num_ratings < 278, 'third', 'fourth'))))
+
+d.quantiles %>%
+  group_by(quantile) %>%
+  summarise(obs = n())
+
+
 ## beer ABV plot
 beer_abv_plot(d.raw)
 
