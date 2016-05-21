@@ -13,7 +13,7 @@ source("analysis/analysis_helpers.R")
 ####
 #### Read in data
 ####
-d.raw <- read.csv("data/clean_data_full2.csv", stringsAsFactors = FALSE)
+d.raw <- read.csv("data/clean_data_full.csv", stringsAsFactors = FALSE)
 if (!inGlobalEnv("d.raw")) {
   ptm <- proc.time()
   path <- "data/reviews_store/"
@@ -65,43 +65,129 @@ if (!inGlobalEnv("d.clean") & inGlobalEnv("d.raw")) {
                                                     ifelse(user_num_ratings >= 72 & user_num_ratings < 278, 'Q3', 'Q4'))),
            user_experience1000 = ifelse(user_num_ratings >= 1000, "Over1000", "Under999"),
            user_experience500 = ifelse(user_num_ratings >= 500, "Over500", "Under499"),
-           ## Review specific features
+           ## Review language features
            num_tokens = get_num_tokens(review_blob_lower),
            num_types = get_num_types(review_blob_lower),
            type_token_ratio = num_types / num_tokens,
            corrected_ttr = quanteda::lexdiv(quanteda::dfm(review_blob), measure = "CTTR"),
            num_syllables = get_num_syllables(review_blob_lower),
-           readability_score = quanteda::readability(review_blob, measure = "Flesch.Kincaid"))
+           readability_score = quanteda::readability(review_blob, measure = "Flesch.Kincaid"),
+           ## Beer features
+           normalized_beer_global_score = beer_global_score / 20,
+           normalized_beer_global_style_score = beer_global_style_score / 20)
   d.clean <- d.clean %>%
     rowwise %>%
     mutate(num_first_person_singular_pnouns = get_num_first_person_pnouns(review_blob_lower))
   
   write.csv(d.clean, "data/clean_data_full2.csv")
 }
-
+d.clean <- read.csv("data/clean_data_full2.csv", stringsAsFactors = FALSE)
 ######
 ###### User level analysis
 ######
 d.user_info <- d.clean %>%
-  filter(user_num_ratings >= 10) %>%
+  filter(user_num_ratings >= 30) %>%
+  # filter(beer_global_score >= 97) %>%
   group_by(user_name) %>%
-  summarise(user_num_ratings = mean(user_num_ratings),
+  summarise(
+            ## Reviews
+            ## -------
+            avg_overall_score = mean(review_overall_score),
+            var_overall_score = var(review_overall_score),
+            normalized_avg_overall_score = mean(review_overall_score/4),
+            normalized_var_overall_score = var(review_overall_score/4),
+            avg_taste_score = mean(review_taste_score),
+            var_taste_score = var(review_taste_score),
+            avg_aroma_score = mean(review_aroma_score),
+            var_aroma_score = var(review_aroma_score),
+            avg_appearance_score = mean(review_appearance_score),
+            var_appearance_score = var(review_appearance_score),
+            ## Beer attributes
+            ## ---------------
+            avg_beer_global_score = mean(beer_global_score, na.rm = TRUE),
+            avg_normalized_global_score = mean(normalized_beer_global_score, na.rm = TRUE),
+            diff_overall_score = normalized_avg_overall_score - avg_normalized_global_score,
+            var_beer_global_score = var(beer_global_score, na.rm = TRUE),
+            avg_beer_global_style_score = mean(beer_global_style_score, na.rm = TRUE),
+            var_beer_global_style_score = var(beer_global_style_score, na.rm = TRUE),
+            # avg_beer_abv = mean(beer_ABV, na.rm = TRUE),
+            avg_beer_num_calories = mean(beer_num_calories, na.rm = TRUE),
+            var_beer_num_calories = var(beer_num_calories, na.rm = TRUE),
+            avg_beer_num_ratings = mean(beer_num_ratings, na.rm = TRUE),
+            var_beer_num_ratings = var(beer_num_ratings, na.rm = TRUE),
+            ## User
+            ## ----
+            user_num_ratings = mean(user_num_ratings),
             review_sims = review_similarities(review_blob_lower),
             avg_num_tokens = mean(num_tokens),
             avg_num_types = mean(num_types),
-            avg_lediv_type_token = mean(type_token_ratio),
+            avg_lexdiv_type_token = mean(type_token_ratio),
             avg_num_syllables = mean(num_syllables),
             avg_cttr = mean(corrected_ttr),
             avg_readability = mean(readability_score),
-            avg_fpspns = mean(num_first_person_singular_pnouns))
+            avg_fpspns = mean(num_first_person_singular_pnouns),
+            num_styles = length(unique(beer_style)))
 
+
+mean(p, na.rm = TRUE)
+## Num styles
+ggplot(d.user_info, aes(x = log(user_num_ratings), y = diff_overall_score)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", aes(group=1))
+
+summary(lm(diff_overall_score ~ . -user_name-var_overall_score-var_taste_score, data = d.user_info))
+
+names(d.user_info)
+summary(lm(user_num_ratings~.-user_name, data = d.user_info))
+
+ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_beer_global_score)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "lm", aes(group=1))
+
+d.clean %>%
+  filter(beer_global_score > 97)
+
+str(d.clean)
+
+str(d.user_info)
 
 ## Plotting first person singular pronouns
-ggplot(aes(x = log(num_ratings), y = avg_fpspns)) +
+ggplot(d.user_info,
+       aes(x = log(user_num_ratings), y = avg_fpspns, col = avg_num_tokens, size = avg_num_tokens)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "lm")
+summary(lm(avg_fpspns ~ . - user_name, data = d.user_info))
+
+ggplot(d.user_info,
+       aes(x = log(user_num_ratings), y = avg_cttr, col = avg_num_tokens, size = avg_num_tokens)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "lm")
+summary(lm(avg_cttr ~ . - user_name, data = d.user_info))
+
+ggplot(d.user_info,
+       aes(x = log(user_num_ratings), y = review_sims, col = avg_num_tokens, size = avg_num_tokens)) +
   geom_point(alpha = 0.2) +
   geom_smooth(method = "lm")
 
 
+d.mini <- d.clean[1:100, ]
+d.mini %>%
+  group_by(user_name) %>%
+  mutate(num_styles = length(unique(beer_style))) %>%
+  select(user_name, user_num_ratings, num_styles) %>%
+  View
+  
+View(d.clean)
+  
+names(d.clean)
+
+user_1 <- length(unique(d.clean[d.clean$user_name == "tippebrewcrew2", ]$beer_style[1:11]))
+
+user_1
+
+i.nad.clean
+  
+d.clean$user_name[1]
 
 d.user_info %>%
   gather(type, value, c(review_sims, avg_num_tokens, avg_num_types, avg_type_token, avg_cttr, avg_readability)) %>%
