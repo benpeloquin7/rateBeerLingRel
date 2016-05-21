@@ -3,6 +3,70 @@ library(tidyr)
 library(dplyr)
 library(stringr)
 
+#####
+##### inGlobalEnv()
+##### -------------
+##### boolean object presence in global env
+#####
+inGlobalEnv <- function(item) {
+  item %in% ls(envir = .GlobalEnv)
+}
+
+#####################################################################
+##                 Language analysis helpers
+#####################################################################
+## review_similarities
+## ------------------
+review_similarities <- function(user_reviews) {
+  ## Note dfm default params
+  ## toLower = TRUE,
+  ## removeNumbers = TRUE, removePunct = TRUE, removeSeparators = TRUE,
+  ## removeTwitter = FALSE, stem = FALSE
+  ## language = "english"
+  dfm <- quanteda::dfm(user_reviews)
+  mean(unlist(quanteda::similarity(dfm, margin = "documents", method = "cosine")))
+}
+
+## get_num_tokens
+## --------------
+get_num_tokens <- function(review) {
+  quanteda::ntoken(tolower(review),
+                   removeNumbers = TRUE,
+                   removePunct = TRUE,
+                   removeSeparators = TRUE)
+}
+## get_num_types
+## -------------
+get_num_types <- function(review) {
+  quanteda::ntype(tolower(review),
+                  removeNumbers = TRUE,
+                  removePunct = TRUE,
+                  removeSeparators = TRUE)
+}
+## get_num_syllables
+## --------------
+get_num_syllables <- function(review) {
+  quanteda::syllables(tolower(review))
+}
+## get_num_first_person_pnouns()
+## ------------------------------
+get_num_first_person_pnouns <- function(review) {
+  fpsp <- c("(^i(?:'m|m)?\\s|\\si(?:'m|m)?\\.?\\s|\\si(?:'m|m)?\\.?$)",
+            "(^we(?:'re)?\\s|\\swe(?:'re)?\\.?\\s|\\swe(?:'re)?\\.?$)",
+            "(^me\\s|\\sme\\.?\\s|\\sme\\.?$)",
+            "(^us\\s|\\sus\\.?\\s|\\sus\\.?$)",
+            "(^ours?\\s|\\sours?\\.?\\s|\\sours?\\.?$)",
+            "(^my\\s|\\smy\\.?\\s|\\smy\\.?$)",
+            "(^mine\\s|\\smine\\.?\\s|\\smine\\.?$)")
+  sum(stringr::str_count(review, pattern = fpsp))
+}
+
+
+
+#####################################################################
+##                     Scraping helpers
+#####################################################################
+
 ####
 #### Number of scrape
 ####
@@ -15,6 +79,7 @@ timeNeededInSeconds <- function(nIDs, pauseTime, pauseValue) {
 
 ######
 ###### print_ids_summary()
+###### --------------------
 ###### print the number of ids and reviews we've scraped
 ######
 print_ids_summary <- function(d) {
@@ -69,6 +134,9 @@ print_review_summary <- function(d.raw) {
 ######
 review_summary_plots <- function(d.raw) {
   d.raw %>%
+    mutate(review_taste_score = review_taste_score / 2,
+           review_aroma_score = review_aroma_score / 2,
+           review_overall_score = review_overall_score / 4) %>%
     gather(type, score,
            c(review_palate_score,
              review_taste_score,
@@ -79,6 +147,25 @@ review_summary_plots <- function(d.raw) {
     ggplot(aes(score)) +
     geom_bar() +
     facet_wrap(~type, scales = "free")
+  
+  cat(paste0("-------------- Aspects summaries ----------------"), "\n")
+  
+  summary_stas <- d.raw %>%
+    mutate(review_taste_score = review_taste_score / 2,
+           review_aroma_score = review_aroma_score / 2,
+           review_overall_score = review_overall_score / 4) %>%
+    gather(type, score,
+           c(review_palate_score,
+             review_taste_score,
+             review_aroma_score,
+             review_avg_score,
+             review_appearance_score,
+             review_overall_score)) %>%
+    group_by(type) %>%
+    summarise(avg = mean(score),
+              var = var(score))
+    
+  print(summary_stas)
 }
 
 ######
