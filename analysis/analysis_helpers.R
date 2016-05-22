@@ -49,19 +49,63 @@ get_num_syllables <- function(review) {
   quanteda::syllables(tolower(review))
 }
 ## get_num_first_person_pnouns()
-## ------------------------------
+## -----------------------------
 get_num_first_person_pnouns <- function(review) {
-  fpsp <- c("(^i(?:'m|m)?\\s|\\si(?:'m|m)?\\.?\\s|\\si(?:'m|m)?\\.?$)",
-            "(^we(?:'re)?\\s|\\swe(?:'re)?\\.?\\s|\\swe(?:'re)?\\.?$)",
-            "(^me\\s|\\sme\\.?\\s|\\sme\\.?$)",
-            "(^us\\s|\\sus\\.?\\s|\\sus\\.?$)",
-            "(^ours?\\s|\\sours?\\.?\\s|\\sours?\\.?$)",
-            "(^my\\s|\\smy\\.?\\s|\\smy\\.?$)",
-            "(^mine\\s|\\smine\\.?\\s|\\smine\\.?$)")
+  fpsp <- c("(^i(?:'m|m)?\\s|\\si(?:'m|m)?[\\.!?]?\\s|\\si(?:'m|m)?[\\.!?]?$)",
+            "(^we(?:'re|'ve)?\\s|\\swe(?:'re|'ve)?[\\.!?]?\\s|\\swe(?:'re|'ve)?[\\.!?]?$)",
+            "(^me\\s|\\sme[\\.!?]?\\s|\\sme[\\.!?]?$)",
+            "(^us\\s|\\sus[\\.!?]?\\s|\\sus[\\.!?]?$)",
+            "(^ours?\\s|\\sours?[\\.!?]?\\s|\\sours?[\\.!?]?$)",
+            "(^my\\s|\\smy[\\.!?]?\\s|\\smy[\\.!?]?$)",
+            "(^mine\\s|\\smine[\\.!?]?\\s|\\smine[\\.!?]?$)")
   sum(stringr::str_count(review, pattern = fpsp))
 }
 
+## get_num_swear_words()
+## ---------------------
+get_num_swear_words <- function(review) {
+  swear_words <- c("(^stupid\\s|\\sstupid.?\\s|\\sstupid.?$)",
+                   "(^damn\\s|\\sdamn.?\\s|\\ssdamn.?$)",
+                   "(^dumb\\s|\\sdumb.?\\s|\\sdumb.?$)",
+                   "(^pee\\s|\\spee.?\\s|\\spee.?$)",
+                   "(^lame\\s|\\slame.?\\s|\\slame.?$)",
+                   "(^shit\\s|\\sshit.?\\s|\\sshit.?$)",
+                   "(^suck\\s|\\ssuck.?\\s|\\ssuck.?$)",
+                   "(^ass\\s|\\sass.?\\s|\\sass.?$)",
+                   "(^butt\\s|\\sbutt.?\\s|\\sbutt.?$)",
+                   "(^fuck\\s|\\sfuck.?\\s|\\sfuck.?$)",
+                   "(^cunt\\s|\\scunt.?\\s|\\scunt.?$)",
+                   "(^fag\\s|\\sfag.?\\s|\\sfag.?$)",
+                   "(^cocksucker\\s|\\scocksucker.?\\s|\\scocksucker.?$)",
+                   "(^motherfucker\\s|\\smotherfucker.?\\s|\\smotherfucker.?$)",
+                   "(^buttfuck\\s|\\sbuttfuck.?\\s|\\sbuttfuck.?$)",
+                   "(^bitch\\s|\\sbitch.?\\s|\\sbitch.?$)",
+                   "(^retard\\s|\\sretard.?\\s|\\sretard.?$)",
+                   "(^whore\\s|\\swhore.?\\s|\\swhore.?$)")
+  sum(stringr::str_count(review, pattern = swear_words))
+}
 
+## get_num_mispelled()
+## -------------------
+get_num_mispelled <- function(review) {
+  length(qdap::which_misspelled(review))
+}
+
+## get_num_negations()
+## -------------------
+get_num_negations <- function(review) {
+  neg_words <- c("([\\b\\s]not[\\s|\\b\\.?!])",
+                 "([\\b\\s]no[\\s|\\b\\.?!])",
+                 "([a-z]+n't[\\s|\\b\\.?!])",
+                   "([\\b\\s](?:couldnt|didnt|wouldnt|shouldnt|wont|dont)[\\s|\\b\\.?!])",
+                   "([\\b\\s]neither[\\s|\\b\\.?!])",
+                   "([\\b\\s]nothing[\\s|\\b\\.?!])",
+                   "([\\b\\s]nobody[\\s|\\b\\.?!])",
+                   "([\\b\\s]nowhere[\\s|\\b\\.?!])",
+                   "([\\b\\s]none[\\s|\\b\\.?!])",
+                   "([\\b\\s]nor[\\s|\\b\\.?!])")
+  sum(stringr::str_count(review, pattern = neg_words))
+}
 
 #####################################################################
 ##                     Scraping helpers

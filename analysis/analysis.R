@@ -13,6 +13,9 @@ source("analysis/analysis_helpers.R")
 ####
 #### Read in data
 ####
+d.swear_words <- read.csv("analysis/english_swear_words.csv", stringsAsFactors = FALSE)
+
+
 d.raw <- read.csv("data/clean_data_full.csv", stringsAsFactors = FALSE)
 if (!inGlobalEnv("d.raw")) {
   ptm <- proc.time()
@@ -38,14 +41,13 @@ d.raw <- d.raw %>%
   rowwise %>%
   mutate(beer_ABV_num = as.numeric(stri_match_all_regex(as.character(beer_ABV), ABV_pattern)[[1]][1,2]))
 
-## Filter patterns 
-## ---------------
-must_contain_chars_pattern <- '^[^a-zA-Z]*$'
-
 ## General filtering and mutation
 ## -------------------------------
 d.clean <- d.raw
 if (!inGlobalEnv("d.clean") & inGlobalEnv("d.raw")) {
+  ## Filter patterns 
+  must_contain_chars_pattern <- '^[^a-zA-Z]*$'
+  
   d.clean <- d.raw %>%
     filter(review_blob != '',
            !grepl(must_contain_chars_pattern, review_blob),
@@ -77,7 +79,9 @@ if (!inGlobalEnv("d.clean") & inGlobalEnv("d.raw")) {
            normalized_beer_global_style_score = beer_global_style_score / 20)
   d.clean <- d.clean %>%
     rowwise %>%
-    mutate(num_first_person_singular_pnouns = get_num_first_person_pnouns(review_blob_lower))
+    mutate(num_first_person_singular_pnouns = get_num_first_person_pnouns(review_blob_lower),
+           num_swear_words = get_num_swear_words(review_blob_lower),
+           num_negation_words = get_num_negations(review_blob_lower))
   
   write.csv(d.clean, "data/clean_data_full2.csv")
 }
@@ -128,6 +132,12 @@ d.user_info <- d.clean %>%
             avg_fpspns = mean(num_first_person_singular_pnouns),
             num_styles = length(unique(beer_style)))
 
+d.mini %>%
+  rowwise %>%
+  mutate(num_swear_words = get_num_swear_words(review_blob),
+         num_negations = get_num_negations(tolower(review_blob))) %>%
+  select(user_num_ratings, review_blob, num_negations) %>%
+  View
 
 mean(p, na.rm = TRUE)
 ## Num styles
