@@ -39,3 +39,7 @@ Models examined
 #### Experience classification task
 
 We examine two methods for 
+
+
+## Resources
+http://download.springer.com/static/pdf/693/art%253A10.3758%252FBRM.40.4.1065.pdf?originUrl=http%3A%2F%2Flink.springer.com%2Farticle%2F10.3758%2FBRM.40.4.1065&token2=exp=1463956414~acl=%2Fstatic%2Fpdf%2F693%2Fart%25253A10.3758%25252FBRM.40.4.1065.pdf%3ForiginUrl%3Dhttp%253A%252F%252Flink.springer.com%252Farticle%252F10.3758%252FBRM.40.4.1065*~hmac=42b31bea7214d65670c61a96a1e18bb19c927158cae8292a459e9f8f26e9d119
