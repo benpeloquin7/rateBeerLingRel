@@ -1,0 +1,301 @@
+---
+title: "expertise_linguistic_analysis"
+author: "Ben Peloquin"
+date: "May 22, 2016"
+output: html_document
+---
+
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+setwd("~/Desktop/Spring2016/CS224U/rateBeerLingRel/")
+source("analysis/analysis_helpers.R")
+```
+
+
+# Data from `analysis.R` with analysis level features
+```{r message=FALSE, warning=FALSE}
+d <- read.csv("~/Desktop/Spring2016/CS224U/rateBeerLingRel/data/clean_data_full_final.csv", stringsAsFactors = FALSE)
+names(d)
+```
+
+
+# User level averages and variance
+```{r user_level_data, message=FALSE, warning=FALSE, results='hide'}
+min_reviews <- 20
+
+ptm <- proc.time()
+d.user_info <- d %>%
+  filter(user_num_ratings >= min_reviews) %>%
+  group_by(user_name) %>%
+  summarise(
+            ## Reviews
+            ## -------
+            avg_overall_score = mean(review_overall_score),
+            var_overall_score = var(review_overall_score),
+            normalized_avg_overall_score = mean(review_overall_score/4),
+            normalized_var_overall_score = var(review_overall_score/4),
+            avg_taste_score = mean(review_taste_score),
+            var_taste_score = var(review_taste_score),
+            avg_aroma_score = mean(review_aroma_score),
+            var_aroma_score = var(review_aroma_score),
+            avg_appearance_score = mean(review_appearance_score),
+            var_appearance_score = var(review_appearance_score),
+            avg_palate_score = mean(review_palate_score),
+            var_palate_score = var(review_palate_score),
+            ## Beer attributes
+            ## ---------------
+            avg_beer_global_score = mean(beer_global_score, na.rm = TRUE),
+            var_beer_global_score = var(beer_global_score, na.rm = TRUE),
+            normalized_avg_global_score = mean(normalized_beer_global_score, na.rm = TRUE),
+            diff_overall_score = normalized_avg_overall_score - normalized_avg_global_score,
+            avg_beer_global_style_score = mean(beer_global_style_score, na.rm = TRUE),
+            var_beer_global_style_score = var(beer_global_style_score, na.rm = TRUE),
+            # avg_beer_abv = mean(beer_ABV, na.rm = TRUE),
+            avg_beer_num_calories = mean(beer_num_calories, na.rm = TRUE),
+            var_beer_num_calories = var(beer_num_calories, na.rm = TRUE),
+            avg_beer_num_ratings = mean(beer_num_ratings, na.rm = TRUE),
+            var_beer_num_ratings = var(beer_num_ratings, na.rm = TRUE),
+            ## User
+            ## ----
+            user_num_ratings = mean(user_num_ratings),
+            review_sims = review_similarities(review_blob_lower),
+            avg_num_tokens = mean(num_tokens),
+            var_num_tokens = var(num_tokens),
+            avg_num_types = mean(num_types),
+            var_num_types = var(num_types),
+            avg_lexdiv_type_token = mean(type_token_ratio),
+            var_lexdiv_type_token = var(type_token_ratio),
+            avg_num_syllables = mean(num_syllables),
+            var_num_syllables = var(num_syllables),
+            avg_cttr = mean(corrected_ttr),
+            var_cttr = var(corrected_ttr),
+            avg_readability = mean(readability_score),
+            var_readability = var(readability_score),
+            avg_fpspns = mean(num_first_person_singular_pnouns),
+            var_fpspns = var(num_first_person_singular_pnouns),
+            num_styles = length(unique(beer_style)),
+            avg_num_swear_words = mean(num_swear_words),
+            var_num_swear_words = var(num_swear_words),
+            avg_num_negation = mean(num_negation_words),
+            var_num_negation = var(num_negation_words),
+            avg_num_mispelled_words = mean(num_mispelled_words),
+            var_num_mispelled_words = var(num_mispelled_words))
+proc.time() - ptm
+```
+
+# Hypothesis 1: First person singular pronouns
+
+## Plot
+```{r fpspns_plot}
+ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_fpspns, size = var_fpspns, col = user_name)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Mean number of first person singular pronouns") +
+  xlab("Log user num ratings") +
+  scale_colour_discrete(guide = FALSE) +
+  geom_smooth(method = "lm", aes(group = 1))
+```
+
+## lmer test
+```{r fpspns_test}
+f <- "num_first_person_singular_pnouns ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + beer_style + (1 | user_name)"
+summary(lmer(as.formula(f), data = d))
+```
+This interesting and in line with findings from Jurafsky more first person singular pronouns predicts worse experience.
+
+
+# Hypothesis 2: Review length
+
+## Plot
+```{r num_tokens_plot}
+ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_num_tokens, size = var_num_tokens, col = user_name)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Mean review length") +
+  xlab("Log user num ratings") +
+  scale_colour_discrete(guide = FALSE) +
+  geom_smooth(method = "lm", aes(group = 1))
+```
+
+## lmer test
+```{r num_tokens_test}
+f <- "num_tokens ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name)"
+summary(lmer(as.formula(f), data = d))
+```
+Here we also see that it looks like more experienced users are writing longer reviews...
+
+# Hypothesis 3: spelling mistakes
+
+## Plot
+```{r spelling_plot}
+# names(d.user_info)
+d.user_info %>%
+  filter(avg_num_mispelled_words / avg_num_tokens < 0.25) %>%
+ggplot(aes(x = log(user_num_ratings), y = avg_num_mispelled_words, size = var_num_mispelled_words, col = user_name)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Mean number of spelling mistakes") +
+  xlab("Log user num ratings") +
+  scale_colour_discrete(guide = FALSE) +
+  geom_smooth(method = "lm", aes(group = 1))
+```
+
+## lmer test
+```{r spelling_test}
+d.filter_non_english <- d %>%
+  filter(num_mispelled_words / num_tokens < 0.25)
+
+f <- "num_mispelled_words  ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name)"
+summary(lmer(as.formula(f), data = d.filter_non_english))
+```
+There may be some problems with non-english reviews, but if we filter so that the reviewers are mispelling less than one if four words we aren't seeing evidence that this is an effect of expertise...
+
+# Hypothesis 4: Profanity
+
+## Plot
+```{r profanity_plot}
+# names(d.user_info)
+d.user_info %>%
+  filter(user_num_ratings >= 50) %>%
+ggplot(aes(x = log(user_num_ratings), y = avg_num_swear_words, size = var_num_swear_words, col = user_name)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Mean number of swear words used") +
+  xlab("Log user num ratings") +
+  scale_colour_discrete(guide = FALSE) +
+  geom_smooth(method = "lm", aes(group = 1))
+```
+
+## lmer test
+```{r profanity_test}
+# d.filter_non_english <- d %>%
+#   filter(num_mispelled_words / num_tokens < 0.25)
+names(d)
+f <- "num_swear_words ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + beer_style + (1 | user_name)"
+summary(lmer(as.formula(f), data = d))
+```
+
+
+# Hypothesis 5: Negation
+
+## Plot
+```{r negation_plot}
+# names(d.user_info)
+ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_num_negation, size = var_num_negation, col = user_name)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Average number of negations used") +
+  xlab("Log user num ratings") +
+  scale_colour_discrete(guide = FALSE) +
+  geom_smooth(method = "lm", aes(group = 1))
+```
+
+## lmer test
+```{r negation_test}
+# d.filter_non_english <- d %>%
+#   filter(num_mispelled_words / num_tokens < 0.25)
+# names(d)
+f <- "num_negation_words ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + beer_style + (1 | user_name)"
+summary(lmer(as.formula(f), data = d))
+```
+Looks like experts tend to use negation less...
+
+# Hypothesis 6: Lexical Diversity via Corrected TTR
+
+## Plot
+```{r lexiv_plot}
+# names(d.user_info)
+ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_cttr, size = var_cttr, col = user_name)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Average corrected type token ratio") +
+  xlab("Log user num ratings") +
+  scale_colour_discrete(guide = FALSE) +
+  geom_smooth(method = "lm", aes(group = 1))
+```
+
+## lmer test
+```{r lexiv_test}
+# d.filter_non_english <- d %>%
+#   filter(num_mispelled_words / num_tokens < 0.25)
+# names(d)
+f <- "corrected_ttr ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name)"
+summary(lmer(as.formula(f), data = d))
+```
+
+# Hypothesis 7: Readability
+
+## Plot
+```{r readability_plot}
+# names(d.user_info)
+ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_readability, size = var_readability, col = user_name)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Average readability score") +
+  xlab("Log user num ratings") +
+  scale_colour_discrete(guide = FALSE) +
+  geom_smooth(method = "lm", aes(group = 1))
+```
+
+## lmer test
+```{r readability_test}
+# d.filter_non_english <- d %>%
+#   filter(num_mispelled_words / num_tokens < 0.25)
+# names(d)
+f <- "corrected_ttr ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + beer_style + (1 | user_name)"
+summary(lmer(as.formula(f), data = d))
+```
+Readability appears to increse...
+
+# Hypothesis 8: Self-similarity
+
+## Plot
+```{r self_similarity_plot}
+# names(d.user_info)
+ggplot(d.user_info, aes(x = log(user_num_ratings), y = review_sims, size = var_readability, col = user_name)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Average readability score") +
+  xlab("Log user num ratings") +
+  scale_colour_discrete(guide = FALSE) +
+  geom_smooth(method = "lm", aes(group = 1))
+```
+
+## Normal LM
+```{r self_similarity_test}
+f <- "review_sims ~ log(user_num_ratings)"
+summary(lm(f, data = d.user_info))
+```
+Clearly there's an effect here. We can'r run lmer, because this is an average score. We can regress with multiple regression.
+
+# Hypothesis 8: Ratings variance vs average overall scores
+
+## Plot average scores
+```{r avg_aspect_score_plot}
+# names(d.user_info)
+d.user_info %>%
+  gather(type, value, c(avg_overall_score, avg_taste_score, avg_aroma_score, avg_palate_score, avg_appearance_score)) %>%
+  ggplot(., aes(x = log(user_num_ratings), y = value, col = type)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Mean aspect score") +
+  xlab("Log user num ratings") +
+  scale_colour_discrete(guide = FALSE) +
+  geom_smooth(method = "lm")
+```
+
+## Plot variance scores
+```{r var_aspect_score_plot}
+d.user_info %>%
+  filter(user_num_ratings >= 50) %>%
+  gather(type, value, c(var_taste_score, var_aroma_score, var_palate_score, avg_appearance_score)) %>%
+  ggplot(., aes(x = log(user_num_ratings), y = value, col = type)) +
+  geom_point(alpha = 0.7) + 
+  ylab("Rating variance") +
+  xlab("Log user num ratings") +
+  geom_smooth(method = "lm") +
+  facet_wrap(~type, nrow = 4)
+```
+
+## Normal LM
+```{r var_aspect_score_test}
+f <- "var_taste_score ~ log(user_num_ratings)"
+summary(lm(f, data = d.user_info))
+```
+Clearly there's an effect here. We can'r run lmer, because this is an average score. We can regress with multiple regression.
