@@ -13,9 +13,6 @@ source("analysis/analysis_helpers.R")
 ####
 #### Read in data
 ####
-d.swear_words <- read.csv("analysis/english_swear_words.csv", stringsAsFactors = FALSE)
-
-
 d.raw <- read.csv("data/clean_data_full.csv", stringsAsFactors = FALSE)
 if (!inGlobalEnv("d.raw")) {
   ptm <- proc.time()
@@ -81,9 +78,10 @@ if (!inGlobalEnv("d.clean") & inGlobalEnv("d.raw")) {
     rowwise %>%
     mutate(num_first_person_singular_pnouns = get_num_first_person_pnouns(review_blob_lower),
            num_swear_words = get_num_swear_words(review_blob_lower),
-           num_negation_words = get_num_negations(review_blob_lower))
-  
-  write.csv(d.clean, "data/clean_data_full2.csv")
+           num_negation_words = get_num_negations(review_blob_lower),
+           num_mispelled_words = get_num_mispelled(review_blob_lower))
+  # d.clean2 <- d.clean[, -c(1, 2)]
+  write.csv(d.clean2, "data/clean_data_full_final.csv")
 }
 d.clean <- read.csv("data/clean_data_full2.csv", stringsAsFactors = FALSE)
 ######
