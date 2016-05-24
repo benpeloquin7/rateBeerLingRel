@@ -23,6 +23,36 @@ d <- read.csv("~/Desktop/Spring2016/CS224U/rateBeerLingRel/data/clean_data_full_
 names(d)
 ```
 
+# Quick look at num reviews break-down
+
+## Average review length
+```{r}
+ggplot(d, aes(num_tokens)) +
+  xlim(0, 400) +
+  xlab("Number of tokens") +
+  ylab("Numer of reviews") +
+  geom_histogram(binwidth = 2)
+
+median(d$num_tokens)
+mean(d$num_tokens)
+```
+
+## Average review length
+```{r}
+d[match(unique(d$user_id), d$user_id),] %>%
+    select(user_id, user_num_ratings) %>%
+    group_by(user_num_ratings) %>%
+    summarise(count = n()) %>%
+    ggplot(aes(x = log(count), y = log(user_num_ratings))) +
+      ylab("Log count number of reviews made") +
+      xlab("Log count number of users") +
+      ylim(0, 10) +
+      xlim(0, 10) +
+      # scale_x_reverse() +
+      geom_point(alpha = 0.1, size = 5, col = "blue")
+      # geom_bar(stat = "identity")
+```
+
 
 # User level averages and variance
 ```{r user_level_data, message=FALSE, warning=FALSE, results='hide'}
@@ -97,7 +127,8 @@ ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_fpspns, size = var_fp
   ylab("Mean number of first person singular pronouns") +
   xlab("Log user num ratings") +
   scale_colour_discrete(guide = FALSE) +
-  geom_smooth(method = "lm", aes(group = 1))
+  geom_smooth(method = "lm", aes(group = 1)) +
+  theme(legend.position="none")
 ```
 
 ## lmer test
@@ -164,7 +195,7 @@ ggplot(aes(x = log(user_num_ratings), y = avg_num_swear_words, size = var_num_sw
   ylab("Mean number of swear words used") +
   xlab("Log user num ratings") +
   scale_colour_discrete(guide = FALSE) +
-  geom_smooth(method = "lm", aes(group = 1))
+  theme(legend.position="none")
 ```
 
 ## lmer test
@@ -187,7 +218,8 @@ ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_num_negation, size = 
   ylab("Average number of negations used") +
   xlab("Log user num ratings") +
   scale_colour_discrete(guide = FALSE) +
-  geom_smooth(method = "lm", aes(group = 1))
+  geom_smooth(method = "lm", aes(group = 1)) +
+  theme(legend.position="none")
 ```
 
 ## lmer test
@@ -210,7 +242,8 @@ ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_cttr, size = var_cttr
   ylab("Average corrected type token ratio") +
   xlab("Log user num ratings") +
   scale_colour_discrete(guide = FALSE) +
-  geom_smooth(method = "lm", aes(group = 1))
+  geom_smooth(method = "lm", aes(group = 1)) +
+  theme(legend.position="none")
 ```
 
 ## lmer test
@@ -250,12 +283,13 @@ Readability appears to increse...
 ## Plot
 ```{r self_similarity_plot}
 # names(d.user_info)
-ggplot(d.user_info, aes(x = log(user_num_ratings), y = review_sims, size = var_readability, col = user_name)) +
+ggplot(d.user_info, aes(x = log(user_num_ratings), y = review_sims, col = user_name)) +
   geom_point(alpha = 0.7) + 
   ylab("Average readability score") +
   xlab("Log user num ratings") +
   scale_colour_discrete(guide = FALSE) +
-  geom_smooth(method = "lm", aes(group = 1))
+  geom_smooth(method = "lm", aes(group = 1)) +
+  guides(legend.position = "none")
 ```
 
 ## Normal LM
@@ -299,3 +333,44 @@ f <- "var_taste_score ~ log(user_num_ratings)"
 summary(lm(f, data = d.user_info))
 ```
 Clearly there's an effect here. We can'r run lmer, because this is an average score. We can regress with multiple regression.
+
+
+# Classification results
+```{r}
+dir_path <- "analysis/analysis_data/"
+files <- list.files(dir_path)
+ml.data <- data.frame()
+for (f in files) {
+  print(paste0(dir_path, f))
+  data <- read.csv(paste0(dir_path, f))
+  ml.data <- rbind(ml.data, data)
+}
+```
+
+## Prepare plot data
+```{r}
+plot_data <- ml.data %>%
+  mutate(model = ifelse(model == "baseline", "Baseline", 
+                        ifelse(model == "unigram", "Unigram LM", 
+                               ifelse(model == "trigram", "Trigram Stupid Backoff",
+                                      ifelse(model == "naive_bayes", "Naive Bayes", "Random Forest"))))) %>%
+  group_by(model) %>%
+  summarise(n = n(),
+            avg = mean(accuracy),
+            s = sd(accuracy),
+            error = qnorm(0.975)*s/sqrt(n),
+            lower = avg - error,
+            upper = avg + error)
+```
+
+## Plot performance
+```{r}
+ggplot(plot_data, aes(x = reorder(model, avg), y = avg)) +
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin = lower, ymax = upper)) +
+  geom_hline(aes(yintercept=0.25), linetype = 2, col = "red") +
+  xlab("Model") +
+  ylab("Accuracy - four class classification") +
+  ggtitle("Expertise classsification")
+```
+
