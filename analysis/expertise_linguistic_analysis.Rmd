@@ -12,15 +12,53 @@ library(tidyr)
 library(ggplot2)
 library(lme4)
 library(lmerTest)
-setwd("~/Desktop/Spring2016/CS224U/rateBeerLingRel/")
-source("analysis/analysis_helpers.R")
+source("~/Desktop/Spring2016/CS224U/rateBeerLingRel/analysis/analysis_helpers.R")
+```
+
+
+# Classification results
+```{r}
+dir_path <- "~/Desktop/Spring2016/CS224U/rateBeerLingRel/analysis/analysis_data/"
+files <- list.files(dir_path)
+ml.data <- data.frame()
+for (f in files) {
+  print(paste0(dir_path, f))
+  data <- read.csv(paste0(dir_path, f))
+  ml.data <- rbind(ml.data, data)
+}
+```
+
+## Prepare plot data
+```{r}
+plot_data <- ml.data %>%
+  mutate(model = as.factor(ifelse(model == "baseline", "Baseline", 
+                        ifelse(model == "unigram", "Unigram LM", 
+                               ifelse(model == "trigram", "Trigram Stupid Backoff",
+                                      ifelse(model == "naive_bayes", "Naive Bayes", "Random Forest")))))) %>%
+  group_by(model) %>%
+  summarise(n = n(),
+            avg = mean(accuracy),
+            s = sd(accuracy),
+            error = qnorm(0.975)*s/sqrt(n),
+            lower = avg - error,
+            upper = avg + error)
+```
+
+## Plot performance
+```{r}
+ggplot(plot_data, aes(x = reorder(model, avg), y = avg)) +
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin = lower, ymax = upper)) +
+  geom_hline(aes(yintercept=0.25), linetype = 2, col = "red") +
+  xlab("Model") +
+  ylab("Accuracy - four class classification") +
+  ggtitle("Expertise classsification")
 ```
 
 
 # Data from `analysis.R` with analysis level features
 ```{r message=FALSE, warning=FALSE}
 d <- read.csv("~/Desktop/Spring2016/CS224U/rateBeerLingRel/data/clean_data_full_final.csv", stringsAsFactors = FALSE)
-names(d)
 ```
 
 # Quick look at num reviews break-down
@@ -31,7 +69,8 @@ ggplot(d, aes(num_tokens)) +
   xlim(0, 400) +
   xlab("Number of tokens") +
   ylab("Numer of reviews") +
-  geom_histogram(binwidth = 2)
+  geom_histogram(binwidth = 2) +
+  geom_vline(aes(xintercept=median(d$num_tokens)), linetype=2, col="red")
 
 median(d$num_tokens)
 mean(d$num_tokens)
@@ -43,24 +82,34 @@ d[match(unique(d$user_id), d$user_id),] %>%
     select(user_id, user_num_ratings) %>%
     group_by(user_num_ratings) %>%
     summarise(count = n()) %>%
-    ggplot(aes(x = log(count), y = log(user_num_ratings))) +
+    ggplot(aes(x = log10(count), y = log10(user_num_ratings))) +
       ylab("Log count number of reviews made") +
       xlab("Log count number of users") +
-      ylim(0, 10) +
-      xlim(0, 10) +
+      ylim(0, 5) +
+      xlim(0, 5) +
       # scale_x_reverse() +
       geom_point(alpha = 0.1, size = 5, col = "blue")
       # geom_bar(stat = "identity")
+
+max(d$user_num_ratings)
+
+
+d %>%
+  group_by(user_name) %>%
+  summarise(num_ratings = mean(user_num_ratings)) %>%
+  filter(num_ratings == 1) %>%
+  summarise(n = n())
 ```
 
 
 # User level averages and variance
 ```{r user_level_data, message=FALSE, warning=FALSE, results='hide'}
-min_reviews <- 20
+min_reviews <- 10
 
 ptm <- proc.time()
 d.user_info <- d %>%
-  filter(user_num_ratings >= min_reviews) %>%
+  filter(user_num_ratings >= min_reviews,             ## Must have more than min_reviews
+         num_mispelled_words / num_tokens < 0.5) %>%  ## Must have less than half words mispelled
   group_by(user_name) %>%
   summarise(
             ## Reviews
@@ -116,25 +165,35 @@ d.user_info <- d %>%
             avg_num_mispelled_words = mean(num_mispelled_words),
             var_num_mispelled_words = var(num_mispelled_words))
 proc.time() - ptm
+
+d.user_info %>%
+  filter(avg_num_mispelled_words / avg_num_tokens < 0.25) %>%
+  nrow()
+
+View(d.user_info)
+
 ```
 
 # Hypothesis 1: First person singular pronouns
 
 ## Plot
 ```{r fpspns_plot}
-ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_fpspns, size = var_fpspns, col = user_name)) +
+ggplot(d.user_info, aes(x = log10(user_num_ratings), y = avg_fpspns, size = var_fpspns, col = user_name)) +
   geom_point(alpha = 0.7) + 
   ylab("Mean number of first person singular pronouns") +
   xlab("Log user num ratings") +
   scale_colour_discrete(guide = FALSE) +
   geom_smooth(method = "lm", aes(group = 1)) +
   theme(legend.position="none")
+
+mean(d$num_first_person_singular_pnouns)
 ```
 
 ## lmer test
 ```{r fpspns_test}
-f <- "num_first_person_singular_pnouns ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + beer_style + (1 | user_name)"
-summary(lmer(as.formula(f), data = d))
+f <- "num_first_person_singular_pnouns ~ log10(user_num_ratings) + num_tokens + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name) + (1 | beer_name)"
+fpspns_lmer <- lmer(as.formula(f), data = d)
+summary(fpspns_lmer)
 ```
 This interesting and in line with findings from Jurafsky more first person singular pronouns predicts worse experience.
 
@@ -143,7 +202,7 @@ This interesting and in line with findings from Jurafsky more first person singu
 
 ## Plot
 ```{r num_tokens_plot}
-ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_num_tokens, size = var_num_tokens, col = user_name)) +
+ggplot(d.user_info, aes(x = log10(user_num_ratings), y = avg_num_tokens, size = var_num_tokens, col = user_name)) +
   geom_point(alpha = 0.7) + 
   ylab("Mean review length") +
   xlab("Log user num ratings") +
@@ -153,8 +212,9 @@ ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_num_tokens, size = va
 
 ## lmer test
 ```{r num_tokens_test}
-f <- "num_tokens ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name)"
-summary(lmer(as.formula(f), data = d))
+f <- "num_tokens ~ log10(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name) + (1 | beer_name)"
+rev_len_lmer <- summary(lmer(as.formula(f), data = d))
+summary(rev_len_lmer)
 ```
 Here we also see that it looks like more experienced users are writing longer reviews...
 
@@ -175,11 +235,14 @@ ggplot(aes(x = log(user_num_ratings), y = avg_num_mispelled_words, size = var_nu
 
 ## lmer test
 ```{r spelling_test}
-d.filter_non_english <- d %>%
-  filter(num_mispelled_words / num_tokens < 0.25)
 
-f <- "num_mispelled_words  ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name)"
-summary(lmer(as.formula(f), data = d.filter_non_english))
+## Look at rate of mispelled words
+d_spelling <- d %>%
+  mutate(spelling_mistakes_normed = num_mispelled_words / num_tokens)
+
+f <- "num_mispelled_words ~ log10(user_num_ratings) + num_tokens + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score  + (1 | user_name) + (1 | beer_name)"
+spelling_lmer <- lmer(as.formula(f), data = d_spelling)
+summary(spelling_lmer)
 ```
 There may be some problems with non-english reviews, but if we filter so that the reviewers are mispelling less than one if four words we aren't seeing evidence that this is an effect of expertise...
 
@@ -202,9 +265,12 @@ ggplot(aes(x = log(user_num_ratings), y = avg_num_swear_words, size = var_num_sw
 ```{r profanity_test}
 # d.filter_non_english <- d %>%
 #   filter(num_mispelled_words / num_tokens < 0.25)
-names(d)
-f <- "num_swear_words ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + beer_style + (1 | user_name)"
-summary(lmer(as.formula(f), data = d))
+# d_swear_words <- d %>%
+#   mutate(swear_words_normed = num_swear_words / num_tokens)
+
+f <- "num_swear_words ~ log10(user_num_ratings) + num_tokens  + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name) + (1 | beer_name)"
+swear_word_lmer <- lmer(as.formula(f), data = d)
+summary(swear_word_lmer)
 ```
 
 
@@ -227,8 +293,9 @@ ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_num_negation, size = 
 # d.filter_non_english <- d %>%
 #   filter(num_mispelled_words / num_tokens < 0.25)
 # names(d)
-f <- "num_negation_words ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + beer_style + (1 | user_name)"
-summary(lmer(as.formula(f), data = d))
+f <- "num_negation_words ~ log10(user_num_ratings) + num_tokens + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name) + (1 | beer_name)"
+negation_lmer <- lmer(as.formula(f), data = d)
+summary(negation_lmer)
 ```
 Looks like experts tend to use negation less...
 
@@ -251,8 +318,9 @@ ggplot(d.user_info, aes(x = log(user_num_ratings), y = avg_cttr, size = var_cttr
 # d.filter_non_english <- d %>%
 #   filter(num_mispelled_words / num_tokens < 0.25)
 # names(d)
-f <- "corrected_ttr ~ log(user_num_ratings) + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + beer_global_score + (1 | user_name)"
-summary(lmer(as.formula(f), data = d))
+f <- "corrected_ttr ~ log(user_num_ratings) + num_tokens + user_num_friends + review_overall_score + review_taste_score + review_aroma_score + review_palate_score + review_appearance_score + (1 | user_name) + (1 | beer_name)"
+lexdiv_lmer <- lmer(as.formula(f), data = d)
+summary(lexdiv_lmer)
 ```
 
 # Hypothesis 7: Readability
@@ -294,7 +362,8 @@ ggplot(d.user_info, aes(x = log(user_num_ratings), y = review_sims, col = user_n
 
 ## Normal LM
 ```{r self_similarity_test}
-f <- "review_sims ~ log(user_num_ratings)"
+names(d.user_info)
+f <- "review_sims ~ log10(user_num_ratings) + avg_num_tokens + avg_overall_score + avg_taste_score + avg_aroma_score + avg_palate_score + avg_appearance_score + avg_beer_global_score + num_styles"
 summary(lm(f, data = d.user_info))
 ```
 Clearly there's an effect here. We can'r run lmer, because this is an average score. We can regress with multiple regression.
@@ -333,44 +402,3 @@ f <- "var_taste_score ~ log(user_num_ratings)"
 summary(lm(f, data = d.user_info))
 ```
 Clearly there's an effect here. We can'r run lmer, because this is an average score. We can regress with multiple regression.
-
-
-# Classification results
-```{r}
-dir_path <- "analysis/analysis_data/"
-files <- list.files(dir_path)
-ml.data <- data.frame()
-for (f in files) {
-  print(paste0(dir_path, f))
-  data <- read.csv(paste0(dir_path, f))
-  ml.data <- rbind(ml.data, data)
-}
-```
-
-## Prepare plot data
-```{r}
-plot_data <- ml.data %>%
-  mutate(model = ifelse(model == "baseline", "Baseline", 
-                        ifelse(model == "unigram", "Unigram LM", 
-                               ifelse(model == "trigram", "Trigram Stupid Backoff",
-                                      ifelse(model == "naive_bayes", "Naive Bayes", "Random Forest"))))) %>%
-  group_by(model) %>%
-  summarise(n = n(),
-            avg = mean(accuracy),
-            s = sd(accuracy),
-            error = qnorm(0.975)*s/sqrt(n),
-            lower = avg - error,
-            upper = avg + error)
-```
-
-## Plot performance
-```{r}
-ggplot(plot_data, aes(x = reorder(model, avg), y = avg)) +
-  geom_bar(stat = "identity") +
-  geom_errorbar(aes(ymin = lower, ymax = upper)) +
-  geom_hline(aes(yintercept=0.25), linetype = 2, col = "red") +
-  xlab("Model") +
-  ylab("Accuracy - four class classification") +
-  ggtitle("Expertise classsification")
-```
-
