@@ -14,5 +14,4 @@ How does the amount we know about a topic impact the language we use to describe
 - See analysis () 
 
 ## Part III: Classifying user experience level
-
 - Compared 2 standard ML classifiers (Naive Bayes, Random Forest) and 2 language model based classifiers (unigram Laplace, trigram Stupid-backoff) to a baseline
