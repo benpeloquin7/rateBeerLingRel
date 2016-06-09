@@ -1,45 +1,18 @@
 # RateBeer.com data collection and modeling
 
-## What's this project about?
+## Studying the impact of domain expertise on language use
 
-- Web crawler for RateBeer.com
-- Task of aspect prediction from review data
-- Task of experience level prediction from review data
+How does the amount we know about a topic impact the language we use to describe it? And, given the way we someone talks about a topic, can we recover the amount they know about it? Previous studies indicate that the accumulation of domain specific experiences can influence the way we talk about those experiences. Those previous studies, however, employed different operational definitinos of 'expertise' or 'experience level'. In the current study, we use a data set of over 50 thousand reviews from RateBeer.com, operationalizing 'experience level' via number of reviews written. We find that specific language features differ based on a reviewers experience level and also that we can predict a users' level of experience based on language data alone.
 
-### Web crawler for RateBeer.com
+## Part I: Data collection
 
-Code included in the `data_collection` dir provides basic web scraping functionality. We collect:
+- Scraped 50K reviews from the site RateBeer.com using a user-centric sampling (generating random user-id's and constraining the number of reviews from individual users to 50 max).
+- See scraping code (https://github.com/benpeloquin7/rateBeerLingRel/tree/master/data_collection)
 
-- dim 1
-- dim 2 ...
+## Part II: Statistical language analysis
+- We assessed 7 hypothese direcly or indirectly indicated by previous work.
+- See analysis () 
 
-The data collected in this project includes novel user-level dimensions, compared to previous studies using RateBeer.com data (see Leskovec). In particular, we collect:
+## Part III: Classifying user experience level
 
-- user total number of reviews
-- user total number of styles
-- user total number of places rated ...
-
-### Aspect ratings prediction task
-
-We examine 3 different models with varying feature fns to predict ratings for 
-
-- Overall
-- Taste
-- Aroma
-- Palate
-- Appearance
-
-Models examined
-
-- Linear Regression
-- Lasso
-- Random Forest
-- Gradient Boosting method
-
-#### Experience classification task
-
-We examine two methods for 
-
-
-## Resources
-http://download.springer.com/static/pdf/693/art%253A10.3758%252FBRM.40.4.1065.pdf?originUrl=http%3A%2F%2Flink.springer.com%2Farticle%2F10.3758%2FBRM.40.4.1065&token2=exp=1463956414~acl=%2Fstatic%2Fpdf%2F693%2Fart%25253A10.3758%25252FBRM.40.4.1065.pdf%3ForiginUrl%3Dhttp%253A%252F%252Flink.springer.com%252Farticle%252F10.3758%252FBRM.40.4.1065*~hmac=42b31bea7214d65670c61a96a1e18bb19c927158cae8292a459e9f8f26e9d119
+- Compared 2 standard ML classifiers (Naive Bayes, Random Forest) and 2 language model based classifiers (unigram Laplace, trigram Stupid-backoff) to a baseline
